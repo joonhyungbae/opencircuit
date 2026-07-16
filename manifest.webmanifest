@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "오픈서킷 부산: 아트앤테크 프랙티스",
+  "short_name": "오픈서킷 부산",
+  "description": "부산에서 활동하는 39세까지의 청년 오디오비주얼 작가를 위한 4개월 작품 제작·협업 랩.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait",
+  "background_color": "#0B1020",
+  "theme_color": "#0B1020",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["education", "art", "productivity"],
+  "icons": [
+    { "src": "./favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
