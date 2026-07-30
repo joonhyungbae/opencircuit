@@ -1,0 +1,1 @@
+import{n as e}from"./index-DNyJu31T.js";var t=e(),n=[`bg-ink text-background`,`bg-yellow text-ink`,`border border-hairline bg-transparent text-foreground`];function r({items:e}){return(0,t.jsx)(`ul`,{className:`mt-6 flex flex-wrap gap-2`,children:e.map((e,r)=>(0,t.jsx)(`li`,{className:`pill px-5 py-2.5 text-sm ${n[r%n.length]}`,children:e},e))})}export{r as t};
