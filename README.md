@@ -145,7 +145,8 @@ opencircuit/
 
 만든 작품은 온전히 만든 사람의 것입니다. 제한은 **도구와 교재 자체**에만 걸립니다.
 
-교재로 쓰고 싶으시면 [연락](https://opencircuit.club) 주세요 — 금지라기보다 협의 사항입니다.
+교재로 쓰고 싶으시면 [jh.bae@kaist.ac.kr](mailto:jh.bae@kaist.ac.kr)로 연락 주세요 —
+금지라기보다 협의 사항입니다.
 
 전문은 [LICENSE](LICENSE), 제3자 구성요소는 [NOTICE.md](NOTICE.md)를 보세요.
 

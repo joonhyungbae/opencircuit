@@ -147,8 +147,8 @@ commercialization are restricted, while personal study and making work stay open
 What you make is entirely yours. The restrictions apply only to **the tools and materials
 themselves**.
 
-Want to teach with it? [Get in touch](https://opencircuit.club) — this is a conversation, not
-a flat no.
+Want to teach with it? Email [jh.bae@kaist.ac.kr](mailto:jh.bae@kaist.ac.kr) — this is a
+conversation, not a flat no.
 
 Full terms in [LICENSE](LICENSE); third-party components in [NOTICE.md](NOTICE.md).
 
