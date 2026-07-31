@@ -25,19 +25,35 @@ function readPackageVersion(): string {
   }
 }
 
+/**
+ * 현재 설치된 도구의 커밋을 알아낸다.
+ * 수강생 간 버전을 대조하는 유일한 근거이므로 두 설치 방식 모두를 지원해야 한다.
+ *  - git clone 설치: .git 이 있으므로 git 에게 묻는다 (항상 최신)
+ *  - tarball 설치:   .git 이 없다. 부트스트랩이 남긴 .oc-commit 을 읽는다
+ */
 function readGitCommit(): string {
   try {
-    const gitDir = join(REPO_ROOT, ".git");
-    if (!existsSync(gitDir)) return "unknown";
-    return execSync("git rev-parse --short HEAD", {
-      cwd: REPO_ROOT,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-      windowsHide: true,
-    }).trim();
+    if (existsSync(join(REPO_ROOT, ".git"))) {
+      return execSync("git rev-parse --short HEAD", {
+        cwd: REPO_ROOT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        windowsHide: true,
+      }).trim();
+    }
   } catch {
-    return "unknown";
+    // git 이 실패하면 아래 마커로 넘어간다
   }
+  try {
+    const marker = join(REPO_ROOT, ".oc-commit");
+    if (existsSync(marker)) {
+      const v = readFileSync(marker, "utf8").trim();
+      if (v) return v;
+    }
+  } catch {
+    // 무시하고 unknown 을 돌려준다
+  }
+  return "unknown";
 }
 
 const VERSION = readPackageVersion();
