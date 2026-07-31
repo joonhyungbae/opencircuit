@@ -1,0 +1,147 @@
+OpenCircuit License v1.0
+Copyright (c) 2026 배준형 (Bae Joonhyung). All rights reserved.
+
+이 문서의 한국어본이 정본이며, 영문본은 참고용 번역이다.
+The Korean text is authoritative; the English text is a reference translation.
+
+================================================================================
+한국어 (정본)
+================================================================================
+
+0. 정의
+
+   "자료"   이 저장소에서 저작권자가 작성한 모든 것 (MCP 서버, 부트스트랩,
+            베이스라인, 문서, 커리큘럼 구성).
+            제3자 구성요소는 제외한다 — 제5항 참조.
+
+   "산출물"  이 자료를 사용해 만든 작품, 코드, 이미지, 소리, 문서 등
+            사용자의 창작 결과물.
+
+   "강의 사용" 이 자료의 전부 또는 일부를 강좌·워크숍·수업·교육 프로그램의
+            교재 또는 커리큘럼 기반으로 삼아 타인에게 제공하는 것.
+            대가 수수 여부, 영리·비영리 여부를 불문한다.
+
+1. 허용
+
+   개인적 목적으로 자료를 사용·복제·수정할 수 있다.
+   학습, 실험, 자기 작업에의 활용을 포함한다.
+
+2. 산출물에 대한 무제한
+
+   자료를 사용해 만든 산출물에는 이 라이선스의 어떤 제한도 적용되지 않는다.
+   산출물의 권리는 그것을 만든 사람에게 있으며,
+   전시·판매·배포·상업적 활용에 저작권자의 허가를 필요로 하지 않는다.
+
+3. 제한
+
+   저작권자의 사전 서면 허가 없이 다음을 할 수 없다.
+
+   (a) 강의 사용
+   (b) 자료의 판매, 유료 서비스·제품에의 편입, 그 밖의 수익 창출
+   (c) 자료를 실질적으로 대체하는 파생물의 위 (a)·(b) 목적 배포
+
+4. 제한에도 불구하고 허용되는 것
+
+   다음은 제3항의 제한을 받지 않는다.
+
+   (a) 출처를 밝힌 인용, 링크, 스크린샷
+   (b) 강연·발표에서의 언급 및 시연
+   (c) 개인 간의 일회적 공유
+   (d) 비평, 연구, 보도
+
+5. 제3자 구성요소
+
+   이 저장소에는 타인이 저작권을 가진 구성요소가 포함될 수 있다
+   (공식 예제 코드, 라이브러리, 에셋 등).
+   해당 부분에는 각 원저작자의 라이선스가 그대로 적용되며,
+   이 라이선스가 그것을 변경하거나 축소하지 않는다.
+   목록과 조건은 NOTICE.md 를 참조한다.
+
+6. 허가 요청
+
+   제3항에 해당하는 사용을 원하는 경우 연락하면 된다.
+   원칙적으로 금지가 아니라 협의 사항이다.
+   https://opencircuit.club 또는 이 저장소의 GitHub Issues.
+
+7. 보증 없음
+
+   자료는 "있는 그대로" 제공된다.
+   저작권자는 상품성, 특정 목적 적합성, 비침해에 대한 어떠한 보증도 하지 않으며,
+   자료의 사용으로 발생한 손해에 책임을 지지 않는다.
+
+8. 준거법
+
+   대한민국 법률에 따른다.
+
+================================================================================
+English (reference translation)
+================================================================================
+
+0. Definitions
+
+   "Materials"  Everything in this repository authored by the copyright holder
+                (MCP servers, bootstrap, baselines, documentation, curriculum
+                design). Third-party components are excluded — see Section 5.
+
+   "Output"     Works, code, images, sound, or documents you create using the
+                Materials.
+
+   "Instructional Use"  Using the Materials, in whole or in part, as the
+                teaching material or curriculum basis of a course, workshop,
+                class, or educational program offered to others — whether or
+                not a fee is charged, and whether or not for profit.
+
+1. Permitted
+
+   You may use, copy, and modify the Materials for personal purposes,
+   including study, experimentation, and your own creative work.
+
+2. Output is unrestricted
+
+   No restriction in this license applies to Output created using the
+   Materials. Rights in Output belong to the person who made it. Exhibiting,
+   selling, distributing, or commercially exploiting Output requires no
+   permission from the copyright holder.
+
+3. Restricted
+
+   Without prior written permission from the copyright holder, you may not:
+
+   (a) engage in Instructional Use;
+   (b) sell the Materials, incorporate them into a paid product or service,
+       or otherwise generate revenue from them;
+   (c) distribute derivative works that substantially substitute for the
+       Materials, for the purposes in (a) or (b).
+
+4. Permitted notwithstanding Section 3
+
+   Section 3 does not restrict:
+
+   (a) attributed quotation, linking, and screenshots;
+   (b) mention and demonstration in talks and presentations;
+   (c) one-off sharing between individuals;
+   (d) criticism, research, and news reporting.
+
+5. Third-party components
+
+   This repository may include components copyrighted by others (official
+   example code, libraries, assets). Those parts remain governed by their
+   original licenses; this license neither alters nor narrows them.
+   See NOTICE.md for the list and terms.
+
+6. Requesting permission
+
+   If you want to do something in Section 3, get in touch. It is a matter for
+   discussion, not a categorical no.
+   https://opencircuit.club or GitHub Issues on this repository.
+
+7. No warranty
+
+   The Materials are provided "as is", without warranty of any kind, express
+   or implied, including merchantability, fitness for a particular purpose,
+   and non-infringement. The copyright holder is not liable for any damages
+   arising from use of the Materials.
+
+8. Governing law
+
+   The laws of the Republic of Korea.

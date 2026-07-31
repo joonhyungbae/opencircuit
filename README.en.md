@@ -80,7 +80,7 @@ Each session's needs become one server.
 
 ## Layout
 
-```
+```text
 opencircuit/
 ├── servers/            # MCP servers, one per role
 │   └── hello/
@@ -129,6 +129,28 @@ More detail → [docs/architecture.md](docs/architecture.md)
 Nine teaching sessions, two field research trips, critique and installation — closing with a
 public showcase on December 19.
 Full curriculum → [opencircuit.club/curriculum](https://opencircuit.club/curriculum)
+
+---
+
+## License and usage policy
+
+These are teaching materials built together with the participants, so **re-teaching and
+commercialization are restricted, while personal study and making work stay open**.
+
+| | |
+|---|---|
+| ✅ **Free to do** | Personal study and experimentation, use in your own work, quote, link, demo |
+| ✅ **No restriction** | **Work you make** with these tools — exhibit, sell, distribute; no permission needed |
+| ✋ **Ask first** | Using this as course or workshop material (paid or not) |
+| ✋ **Ask first** | Selling it, bundling it into a paid product or service, or otherwise monetizing it |
+
+What you make is entirely yours. The restrictions apply only to **the tools and materials
+themselves**.
+
+Want to teach with it? [Get in touch](https://opencircuit.club) — this is a conversation, not
+a flat no.
+
+Full terms in [LICENSE](LICENSE); third-party components in [NOTICE.md](NOTICE.md).
 
 ---
 
