@@ -1,0 +1,16 @@
+{
+  "name": "opencircuit",
+  "private": true,
+  "version": "0.0.0",
+  "description": "OpenCircuit 수강생용 MCP 도구 모노레포",
+  "workspaces": [
+    "servers/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:hello": "npm run build -w @opencircuit/mcp-hello"
+  }
+}
