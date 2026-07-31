@@ -182,9 +182,10 @@ ensure_repo() {
     if [[ -e "${REPO_DIR}" ]]; then
       fail "${REPO_DIR} 는 있지만 git 저장소가 아닙니다. 폴더를 백업·삭제한 뒤 다시 실행하세요. (작품은 ~/.opencircuit 밖에 두세요.)"
     fi
-    info "레포 clone: ${REPO_URL} → ${REPO_DIR}"
-    if ! git clone --depth 1 "${REPO_URL}" "${REPO_DIR}"; then
-      fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요."
+    info "레포 clone: ${REPO_URL} (branch main) → ${REPO_DIR}"
+    # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
+    if ! git clone --depth 1 --branch main "${REPO_URL}" "${REPO_DIR}"; then
+      fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요. (브랜치 main 이 있는지도 확인하세요.)"
     fi
     ok "clone 완료"
   else

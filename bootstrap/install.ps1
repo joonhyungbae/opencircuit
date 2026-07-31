@@ -184,10 +184,11 @@ function Ensure-Repo {
       Write-Fail "$RepoDir 폴더는 있지만 git 저장소가 아닙니다. 폴더를 백업·삭제한 뒤 부트스트랩을 다시 실행하세요. (수강생 작품은 ~/.opencircuit 밖에 두세요.)"
       exit 1
     }
-    Write-Info "레포 clone: $RepoUrl → $RepoDir"
-    & git clone --depth 1 $RepoUrl $RepoDir
+    Write-Info "레포 clone: $RepoUrl (branch main) → $RepoDir"
+    # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
+    & git clone --depth 1 --branch main $RepoUrl $RepoDir
     if ($LASTEXITCODE -ne 0) {
-      Write-Fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요."
+      Write-Fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요. (브랜치 main 이 있는지도 확인하세요.)"
       exit 1
     }
     Write-Ok "clone 완료"

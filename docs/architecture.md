@@ -213,7 +213,8 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 3. git 확인 → 없으면 설치(관리자 없이 가능한 경로 우선)
 4. Cursor 확인 → 없으면 다운로드 URL 안내 후 **중단**
 5. `https://github.com/joonhyungbae/opencircuit` → **`~/.opencircuit/repo`**
-   - 없으면: `git clone --depth 1`
+   - 없으면: `git clone --depth 1 --branch main`
+     (원격 기본 브랜치가 `gh-pages`일 수 있으므로 **main을 명시**)
    - 있으면: `git pull` (멱등). `--update`는 pull + `npm install` + 빌드 강제
 6. `~/.opencircuit/repo`에서 `npm install` 후 빌드
 7. **전역** `~/.cursor/mcp.json` 생성 또는 **병합**
