@@ -23,8 +23,11 @@ $ErrorActionPreference = "Stop"
 $RepoUrl = "https://github.com/joonhyungbae/opencircuit.git"
 $ServerKey = "opencircuit-hello"
 $CursorDownloadUrl = "https://cursor.com/download"
+$TarballUrl = "https://codeload.github.com/joonhyungbae/opencircuit/tar.gz/refs/heads/main"
+$CommitApiUrl = "https://api.github.com/repos/joonhyungbae/opencircuit/commits/main"
 $HomeOpenCircuit = Join-Path $env:USERPROFILE ".opencircuit"
 $RepoDir = Join-Path $HomeOpenCircuit "repo"
+$script:HasGit = $false
 $McpJsonPath = Join-Path $env:USERPROFILE ".cursor\mcp.json"
 $ScriptDir = $PSScriptRoot
 $VerifyScript = Join-Path $ScriptDir "verify.mjs"
@@ -90,13 +93,20 @@ function Get-HelloEntry {
 }
 
 function Get-RepoCommit {
-  if (-not (Test-Path (Join-Path $RepoDir ".git"))) { return $null }
-  try {
-    Push-Location $RepoDir
-    $h = & git rev-parse --short HEAD 2>$null
-    if ($LASTEXITCODE -eq 0 -and $h) { return $h.Trim() }
-  } catch { } finally {
-    Pop-Location
+  if ((Test-Path (Join-Path $RepoDir ".git")) -and (Test-GitPresent)) {
+    try {
+      Push-Location $RepoDir
+      $h = & git rev-parse --short HEAD 2>$null
+      if ($LASTEXITCODE -eq 0 -and $h) { return $h.Trim() }
+    } catch { } finally {
+      Pop-Location
+    }
+  }
+  # tarball 설치에는 .git 이 없다 — 설치 시 기록한 해시를 읽는다.
+  $marker = Join-Path $RepoDir ".oc-commit"
+  if (Test-Path $marker) {
+    $v = (Get-Content $marker -Raw -ErrorAction SilentlyContinue)
+    if ($v) { return $v.Trim() }
   }
   return $null
 }
@@ -140,29 +150,69 @@ function Ensure-Node {
   Write-Ok "Node $(node -v) 설치됨"
 }
 
-function Ensure-Git {
+# git 은 있으면 쓰고 없으면 tarball 로 우회한다.
+# winget 의 git 설치는 권한 승격 창을 띄울 수 있고, 수업 중에 이건 막히는 지점이다.
+# 따라서 여기서 절대 중단하지 않는다.
+function Resolve-GitAvailability {
   if (Test-GitPresent) {
+    $script:HasGit = $true
     Write-Ok "git $((git --version) -replace 'git version ','') 확인"
     return
   }
-  Write-Info "git이 없습니다. winget으로 설치를 시도합니다."
   $winget = Get-Command winget -ErrorAction SilentlyContinue
-  if (-not $winget) {
-    Write-Fail "git이 없고 winget도 없습니다. https://git-scm.com/download/win 에서 git을 설치한 뒤 다시 실행하세요."
-    exit 1
+  if ($winget) {
+    Write-Info "git이 없습니다. winget으로 설치를 시도합니다."
+    try {
+      & winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
+      Refresh-Path
+    } catch { }
+    if (Test-GitPresent) {
+      $script:HasGit = $true
+      Write-Ok "git 설치됨"
+      return
+    }
   }
+  $script:HasGit = $false
+  Write-WarnMsg "git이 없습니다. 내려받기(tarball) 방식으로 설치합니다 — 설치·사용에는 문제가 없습니다."
+  Write-Info "나중에 git이 필요해지면 https://git-scm.com/download/win 에서 설치하고 부트스트랩을 다시 실행하세요."
+}
+
+# tarball 설치에는 .git 이 없으므로 커밋 해시를 파일로 남긴다.
+# (doctor 가 수강생 간 버전을 대조하는 유일한 근거다)
+function Save-CommitMarker {
+  $sha = ""
   try {
-    & winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
+    $resp = Invoke-RestMethod -Uri $CommitApiUrl -Headers @{ "User-Agent" = "opencircuit-bootstrap" } -TimeoutSec 20
+    if ($resp -and $resp.sha) { $sha = [string]$resp.sha }
+  } catch { }
+  if ($sha.Length -ge 7) { $sha = $sha.Substring(0, 7) } else { $sha = "unknown" }
+  Set-Content -Path (Join-Path $RepoDir ".oc-commit") -Value $sha -Encoding UTF8
+}
+
+function Install-RepoTarball {
+  $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("oc-" + [guid]::NewGuid().ToString("N"))
+  New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+  $archive = Join-Path $tmp "oc.tar.gz"
+  Write-Info "도구 내려받기: $TarballUrl"
+  try {
+    Invoke-WebRequest -Uri $TarballUrl -OutFile $archive -UseBasicParsing
   } catch {
-    Write-Fail "git 설치에 실패했습니다. https://git-scm.com/download/win 에서 직접 설치한 뒤 PowerShell을 새로 열고 다시 실행하세요."
+    Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+    Write-Fail "도구를 내려받지 못했습니다. 인터넷을 확인한 뒤 다시 실행하세요."
     exit 1
   }
-  Refresh-Path
-  if (-not (Test-GitPresent)) {
-    Write-Fail "git 설치 후에도 명령을 찾지 못했습니다. PowerShell을 다시 연 뒤 재실행하세요."
+  if (Test-Path $RepoDir) { Remove-Item -Recurse -Force $RepoDir }
+  New-Item -ItemType Directory -Force -Path $RepoDir | Out-Null
+  # tar.exe 는 Windows 10 1803+ 에 기본 포함되어 있다.
+  & tar -xzf $archive -C $RepoDir --strip-components=1
+  $tarOk = ($LASTEXITCODE -eq 0)
+  Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+  if (-not $tarOk) {
+    Write-Fail "내려받은 파일을 푸는 데 실패했습니다. 다시 실행하세요."
     exit 1
   }
-  Write-Ok "git 설치됨"
+  Save-CommitMarker
+  Write-Ok "설치 완료 (커밋 $(Get-RepoCommit))"
 }
 
 function Ensure-CursorOrAbort {
@@ -179,20 +229,11 @@ function Ensure-Repo {
 
   New-Item -ItemType Directory -Force -Path $HomeOpenCircuit | Out-Null
 
-  if (-not (Test-Path (Join-Path $RepoDir ".git"))) {
-    if (Test-Path $RepoDir) {
-      Write-Fail "$RepoDir 폴더는 있지만 git 저장소가 아닙니다. 폴더를 백업·삭제한 뒤 부트스트랩을 다시 실행하세요. (수강생 작품은 ~/.opencircuit 밖에 두세요.)"
-      exit 1
-    }
-    Write-Info "레포 clone: $RepoUrl (branch main) → $RepoDir"
-    # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
-    & git clone --depth 1 --branch main $RepoUrl $RepoDir
-    if ($LASTEXITCODE -ne 0) {
-      Write-Fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요. (브랜치 main 이 있는지도 확인하세요.)"
-      exit 1
-    }
-    Write-Ok "clone 완료"
-  } else {
+  if (-not $script:HasGit) {
+    # git 이 없으면 매번 새로 내려받는다. 멱등하고, 오프라인이 아닌 한 항상 성공한다.
+    Install-RepoTarball
+  }
+  elseif (Test-Path (Join-Path $RepoDir ".git")) {
     Write-Info "기존 레포 발견: $RepoDir — git pull"
     Push-Location $RepoDir
     try {
@@ -205,6 +246,22 @@ function Ensure-Repo {
       Pop-Location
     }
     Write-Ok "pull 완료 (커밋 $(Get-RepoCommit))"
+  }
+  else {
+    # tarball 로 설치했다가 나중에 git 이 생긴 경우 — 지우고 clone 으로 승격한다.
+    if (Test-Path $RepoDir) {
+      Write-Info "기존 설치를 git 저장소로 교체합니다."
+      Remove-Item -Recurse -Force $RepoDir
+    }
+    Write-Info "레포 clone: $RepoUrl (branch main) → $RepoDir"
+    # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
+    & git clone --depth 1 --branch main $RepoUrl $RepoDir
+    if ($LASTEXITCODE -ne 0) {
+      Write-WarnMsg "git clone 에 실패했습니다. 내려받기(tarball) 방식으로 다시 시도합니다."
+      Install-RepoTarball
+    } else {
+      Write-Ok "clone 완료"
+    }
   }
 
   if ($ForceUpdate) {
@@ -332,7 +389,13 @@ function Show-Doctor {
   $nodeStatus = if ($null -ne $major -and $major -ge 20) { "OK ($(node -v))" } else { "FAIL (Node 20+ 필요)" }
   $rows += [pscustomobject]@{ Item = "Node"; Status = $nodeStatus }
 
-  $gitStatus = if (Test-GitPresent) { "OK ($((git --version) -replace 'git version ',''))" } else { "FAIL (git 설치 필요)" }
+  $gitStatus = if (Test-GitPresent) {
+    "OK ($((git --version) -replace 'git version ',''))"
+  } elseif (Test-Path (Join-Path $RepoDir ".oc-commit")) {
+    "없음 — tarball 모드 (정상)"
+  } else {
+    "없음 (설치 시 tarball 로 우회됩니다)"
+  }
   $rows += [pscustomobject]@{ Item = "git"; Status = $gitStatus }
 
   $cursorStatus = if (Test-CursorPresent) { "OK" } else { "FAIL ($CursorDownloadUrl 에서 설치)" }
@@ -394,7 +457,7 @@ if ($Doctor) {
 }
 
 Ensure-Node
-Ensure-Git
+Resolve-GitAvailability
 Ensure-CursorOrAbort
 Ensure-Repo -ForceUpdate:$Update
 Build-Repo

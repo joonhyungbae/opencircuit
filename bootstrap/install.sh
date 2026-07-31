@@ -3,7 +3,14 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/joonhyungbae/opencircuit.git"
+TARBALL_URL="https://codeload.github.com/joonhyungbae/opencircuit/tar.gz/refs/heads/main"
+COMMIT_API_URL="https://api.github.com/repos/joonhyungbae/opencircuit/commits/main"
+# Node 버전은 고정한다. nodejs.org 의 index.json 을 파싱하려면 python3 가 필요한데,
+# Xcode Command Line Tools 가 없는 맥에서는 python3 호출이 CLT 설치 창을 띄운다.
+NODE_PIN="v20.19.0"
 SERVER_KEY="opencircuit-hello"
+LEGACY_KEYS=("opencircuit-hello-dev")
+HAS_GIT=0
 CURSOR_DOWNLOAD_URL="https://cursor.com/download"
 HOME_OC="${HOME}/.opencircuit"
 REPO_DIR="${HOME_OC}/repo"
@@ -72,10 +79,7 @@ install_node_tarball() {
   info "공식 Node 바이너리를 ~/.opencircuit/node 에 풉니다 (레포 clone 경로와 분리)."
   mkdir -p "${HOME_OC}"
   tmp="$(mktemp -d)"
-  ver="$(curl -fsSL https://nodejs.org/dist/index.json | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next(x["version"] for x in data if "lts" in x and x["lts"] and x["version"].startswith("v20.")))' 2>/dev/null || true)"
-  if [[ -z "${ver}" ]]; then
-    ver="v20.19.0"
-  fi
+  ver="${NODE_PIN}"
   tarball="node-${ver}-darwin-${arch}.tar.gz"
   url="https://nodejs.org/dist/${ver}/${tarball}"
   info "다운로드: ${url}"
@@ -126,20 +130,28 @@ ensure_node() {
   install_node_tarball
 }
 
-ensure_git() {
+# git 은 있으면 쓰고 없으면 tarball 로 우회한다.
+# 깨끗한 맥에서 git 을 호출하면 Xcode Command Line Tools 설치 창이 뜨고
+# 관리자 암호와 수 GB 다운로드를 요구한다 — 수업 중에 이건 치명적이다.
+# 따라서 여기서 절대 중단하지 않는다.
+probe_git() {
   if command -v git >/dev/null 2>&1; then
+    HAS_GIT=1
     ok "git $(git --version | sed 's/git version //') 확인"
     return
   fi
   if command -v brew >/dev/null 2>&1; then
-    info "git이 없습니다. Homebrew로 설치합니다."
-    brew install git
+    info "git이 없습니다. Homebrew로 설치를 시도합니다."
+    brew install git || true
     if command -v git >/dev/null 2>&1; then
+      HAS_GIT=1
       ok "git 설치됨"
       return
     fi
   fi
-  fail "git이 없습니다. https://git-scm.com/download/mac 에서 설치하거나 xcode-select --install 후 다시 실행하세요."
+  HAS_GIT=0
+  warn "git이 없습니다. 내려받기(tarball) 방식으로 설치합니다 — 설치·사용에는 문제가 없습니다."
+  info "나중에 git이 필요해지면 https://git-scm.com/download/mac 에서 설치하고 부트스트랩을 다시 실행하세요."
 }
 
 ensure_cursor() {
@@ -155,9 +167,38 @@ hello_entry() {
 }
 
 repo_commit() {
-  if [[ -d "${REPO_DIR}/.git" ]]; then
+  if [[ -d "${REPO_DIR}/.git" ]] && command -v git >/dev/null 2>&1; then
     git -C "${REPO_DIR}" rev-parse --short HEAD 2>/dev/null || true
+  elif [[ -f "${REPO_DIR}/.oc-commit" ]]; then
+    tr -d '[:space:]' < "${REPO_DIR}/.oc-commit"
   fi
+}
+
+# tarball 설치에는 .git 이 없으므로 커밋 해시를 파일로 남긴다.
+# (doctor 가 수강생 간 버전을 대조하는 유일한 근거다)
+record_commit_marker() {
+  local sha
+  sha="$(node -e 'fetch(process.argv[1],{headers:{"User-Agent":"opencircuit-bootstrap"}}).then(r=>r.json()).then(j=>console.log(String(j.sha||"").slice(0,7))).catch(()=>console.log(""))' "${COMMIT_API_URL}" 2>/dev/null || true)"
+  printf '%s\n' "${sha:-unknown}" > "${REPO_DIR}/.oc-commit"
+}
+
+install_repo_tarball() {
+  local tmp
+  tmp="$(mktemp -d)"
+  info "도구 내려받기: ${TARBALL_URL}"
+  if ! curl -fsSL "${TARBALL_URL}" -o "${tmp}/oc.tar.gz"; then
+    rm -rf "$tmp"
+    fail "도구를 내려받지 못했습니다. 인터넷을 확인한 뒤 다시 실행하세요."
+  fi
+  rm -rf "${REPO_DIR}"
+  mkdir -p "${REPO_DIR}"
+  if ! tar -xzf "${tmp}/oc.tar.gz" -C "${REPO_DIR}" --strip-components=1; then
+    rm -rf "$tmp"
+    fail "내려받은 파일을 푸는 데 실패했습니다. 다시 실행하세요."
+  fi
+  rm -rf "$tmp"
+  record_commit_marker
+  ok "설치 완료 (커밋 $(repo_commit))"
 }
 
 merge_script() {
@@ -178,23 +219,36 @@ verify_script() {
 
 ensure_repo() {
   mkdir -p "${HOME_OC}"
-  if [[ ! -d "${REPO_DIR}/.git" ]]; then
-    if [[ -e "${REPO_DIR}" ]]; then
-      fail "${REPO_DIR} 는 있지만 git 저장소가 아닙니다. 폴더를 백업·삭제한 뒤 다시 실행하세요. (작품은 ~/.opencircuit 밖에 두세요.)"
-    fi
-    info "레포 clone: ${REPO_URL} (branch main) → ${REPO_DIR}"
-    # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
-    if ! git clone --depth 1 --branch main "${REPO_URL}" "${REPO_DIR}"; then
-      fail "git clone 에 실패했습니다. 레포가 private 이면 관리자에게 public 전환을 요청하세요. 네트워크를 확인한 뒤 다시 실행하세요. (브랜치 main 이 있는지도 확인하세요.)"
-    fi
-    ok "clone 완료"
-  else
+
+  if [[ "${HAS_GIT}" -ne 1 ]]; then
+    # git 이 없으면 매번 새로 내려받는다. 멱등하고, 오프라인이 아닌 한 항상 성공한다.
+    install_repo_tarball
+    return
+  fi
+
+  if [[ -d "${REPO_DIR}/.git" ]]; then
     info "기존 레포 발견: ${REPO_DIR} — git pull"
     if ! git -C "${REPO_DIR}" pull --ff-only; then
       fail "git pull 에 실패했습니다. 네트워크를 확인하거나, 로컬 변경이 있다면 ~/.opencircuit 밖에서 작업 중인지 확인하세요."
     fi
     ok "pull 완료 (커밋 $(repo_commit))"
+    return
   fi
+
+  # tarball 로 설치했다가 나중에 git 이 생긴 경우 — 지우고 clone 으로 승격한다.
+  if [[ -e "${REPO_DIR}" ]]; then
+    info "기존 설치를 git 저장소로 교체합니다."
+    rm -rf "${REPO_DIR}"
+  fi
+
+  info "레포 clone: ${REPO_URL} (branch main) → ${REPO_DIR}"
+  # 원격 기본 브랜치가 gh-pages 일 수 있으므로 main 을 명시한다.
+  if ! git clone --depth 1 --branch main "${REPO_URL}" "${REPO_DIR}"; then
+    warn "git clone 에 실패했습니다. 내려받기(tarball) 방식으로 다시 시도합니다."
+    install_repo_tarball
+    return
+  fi
+  ok "clone 완료"
 }
 
 build_repo() {
@@ -246,8 +300,10 @@ show_doctor() {
 
   if command -v git >/dev/null 2>&1; then
     git_status="OK ($(git --version | sed 's/git version //'))"
+  elif [[ -f "${REPO_DIR}/.oc-commit" ]]; then
+    git_status="없음 — tarball 모드 (정상)"
   else
-    git_status="FAIL (git 설치 필요)"
+    git_status="없음 (설치 시 tarball 로 우회됩니다)"
   fi
   printf '%-12s %s\n' "git" "$git_status"
 
@@ -305,7 +361,7 @@ if [[ "$DOCTOR" -eq 1 ]]; then
 fi
 
 ensure_node
-ensure_git
+probe_git
 ensure_cursor
 ensure_repo
 build_repo

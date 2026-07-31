@@ -47,6 +47,28 @@ config.mcpServers[key] = {
   env: prevEnv,
 };
 
+/**
+ * 폐기된 설계가 남긴 키를 정리한다.
+ * `opencircuit-hello-dev` 는 npm 배포 시절의 dev/prod 키 분리에서 나온 것으로,
+ * git clone 방식으로 바꾸면서 없어졌다. 남아 있으면 doctor 가 계속 보고한다.
+ * 우리 네임스페이스(opencircuit-)의 키만 지우므로 다른 MCP 서버는 건드리지 않는다.
+ */
+const LEGACY_KEYS = ["opencircuit-hello-dev"];
+const removed = LEGACY_KEYS.filter((k) => k !== key && k in config.mcpServers);
+for (const k of removed) delete config.mcpServers[k];
+
+// 다른 MCP 서버를 쓰던 수강생을 위해 최초 수정 시 백업을 남긴다.
+if (existsSync(mcpPath) && !existsSync(`${mcpPath}.bak`)) {
+  try {
+    writeFileSync(`${mcpPath}.bak`, readFileSync(mcpPath, "utf8"), "utf8");
+  } catch {
+    // 백업 실패가 설치를 막을 이유는 없다.
+  }
+}
+
 mkdirSync(dirname(mcpPath), { recursive: true });
 writeFileSync(mcpPath, JSON.stringify(config, null, 2) + "\n", "utf8");
+if (removed.length) {
+  console.log(`정리한 이전 항목: ${removed.join(", ")}`);
+}
 console.log(`OK keys=${Object.keys(config.mcpServers).join(",")}`);
