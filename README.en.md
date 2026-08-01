@@ -33,9 +33,13 @@ Cursor must already be installed. The bootstrap handles everything else (Node, g
 **Windows** — in PowerShell:
 
 ```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
 irm https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.ps1 -OutFile "$env:TEMP\oc-install.ps1"
 & "$env:TEMP\oc-install.ps1"
 ```
+
+> Why the first line: Windows blocks script execution by default. This allows it for
+> this window only (`-Scope Process`) — your system settings are unchanged.
 
 **macOS** — in Terminal:
 

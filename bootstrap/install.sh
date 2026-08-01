@@ -7,7 +7,9 @@ TARBALL_URL="https://codeload.github.com/joonhyungbae/opencircuit/tar.gz/refs/he
 COMMIT_API_URL="https://api.github.com/repos/joonhyungbae/opencircuit/commits/main"
 # Node 버전은 고정한다. nodejs.org 의 index.json 을 파싱하려면 python3 가 필요한데,
 # Xcode Command Line Tools 가 없는 맥에서는 python3 호출이 CLT 설치 창을 띄운다.
-NODE_PIN="v20.19.0"
+# Windows 는 winget 이 Node 22 LTS 대를 설치한다. 여기서 20 을 고정하면
+# OS 간 메이저 버전이 벌어져, 강사가 Windows 에서 재현되지 않는 mac 문제를 만나게 된다.
+NODE_PIN="v22.20.0"
 SERVER_KEY="opencircuit-hello"
 LEGACY_KEYS=("opencircuit-hello-dev")
 HAS_GIT=0
@@ -155,7 +157,9 @@ probe_git() {
 }
 
 ensure_cursor() {
-  if [[ -d "/Applications/Cursor.app" ]] || command -v cursor >/dev/null 2>&1; then
+  # ~/Applications 에 설치한 사용자도 인정한다 (관리자 권한 없이 설치하면 여기로 간다).
+  if [[ -d "/Applications/Cursor.app" ]] || [[ -d "${HOME}/Applications/Cursor.app" ]] \
+     || command -v cursor >/dev/null 2>&1; then
     ok "Cursor 확인"
     return
   fi
@@ -307,7 +311,9 @@ show_doctor() {
   fi
   printf '%-12s %s\n' "git" "$git_status"
 
-  if [[ -d "/Applications/Cursor.app" ]] || command -v cursor >/dev/null 2>&1; then
+  # ~/Applications 에 설치한 사용자도 인정한다 (관리자 권한 없이 설치하면 여기로 간다).
+  if [[ -d "/Applications/Cursor.app" ]] || [[ -d "${HOME}/Applications/Cursor.app" ]] \
+     || command -v cursor >/dev/null 2>&1; then
     cursor_status="OK"
   else
     cursor_status="FAIL (${CURSOR_DOWNLOAD_URL})"

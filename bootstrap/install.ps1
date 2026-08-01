@@ -40,6 +40,25 @@ function Write-Fail([string]$Message) {
   Write-Host "[실패] $Message" -ForegroundColor Red
 }
 
+# ⚠️ Windows PowerShell 5.1 은 $ErrorActionPreference='Stop' 상태에서
+#    네이티브 실행 파일의 stderr 를 `2>&1` 로 합치면 NativeCommandError 를 던진다.
+#    PowerShell 7 에서는 던지지 않아 개발 중에 드러나지 않는다.
+#    이 때문에 --doctor 가 "문제가 있을 때만" 스택 트레이스로 죽었다.
+#    출력을 캡처하는 네이티브 호출은 반드시 이 함수를 거친다.
+function Invoke-Native {
+  param([string]$Exe, [string[]]$Arguments)
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $out = & $Exe @Arguments 2>&1 | Out-String
+    return [pscustomobject]@{ Output = $out; ExitCode = $LASTEXITCODE }
+  } catch {
+    return [pscustomobject]@{ Output = [string]$_; ExitCode = 1 }
+  } finally {
+    $ErrorActionPreference = $prev
+  }
+}
+
 function Get-NodeMajor {
   try {
     $v = & node -v 2>$null
@@ -75,6 +94,10 @@ function Test-GitPresent {
 
 function Test-CursorPresent {
   $candidates = @(
+    # 전체 사용자 설치(회사 노트북에서 IT 가 대신 설치한 경우)도 인정해야 한다.
+    # 사용자 스코프만 확인하면 설치돼 있는데도 "미설치"로 오진하고 중단한다.
+    (Join-Path $env:ProgramFiles "Cursor\Cursor.exe"),
+    (Join-Path ${env:ProgramFiles(x86)} "Cursor\Cursor.exe"),
     (Join-Path $env:LOCALAPPDATA "Programs\cursor\Cursor.exe"),
     (Join-Path $env:LOCALAPPDATA "Programs\Cursor\Cursor.exe"),
     (Join-Path $env:LOCALAPPDATA "Programs\cursor\cursor.exe")
@@ -201,16 +224,27 @@ function Install-RepoTarball {
     Write-Fail "도구를 내려받지 못했습니다. 인터넷을 확인한 뒤 다시 실행하세요."
     exit 1
   }
-  if (Test-Path $RepoDir) { Remove-Item -Recurse -Force $RepoDir }
-  New-Item -ItemType Directory -Force -Path $RepoDir | Out-Null
-  # tar.exe 는 Windows 10 1803+ 에 기본 포함되어 있다.
-  & tar -xzf $archive -C $RepoDir --strip-components=1
+  # ⚠️ `tar` 를 이름으로 부르면 PATH 에 따라 Git for Windows 의 GNU tar 가 잡힌다.
+  #    GNU tar 는 `-C C:\...` 의 콜론을 원격 호스트로 해석해 실패한다.
+  #    Windows 10 1803+ 기본 포함인 bsdtar 를 절대경로로 호출한다.
+  $tarExe = Join-Path $env:SystemRoot "System32\tar.exe"
+  if (-not (Test-Path $tarExe)) { $tarExe = "tar" }
+  $staging = Join-Path $tmp "extract"
+  New-Item -ItemType Directory -Force -Path $staging | Out-Null
+  & $tarExe -xzf $archive -C $staging --strip-components=1
   $tarOk = ($LASTEXITCODE -eq 0)
-  Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
   if (-not $tarOk) {
-    Write-Fail "내려받은 파일을 푸는 데 실패했습니다. 다시 실행하세요."
+    Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
+    # 기존 설치를 지우기 전에 실패했으므로 이전 상태가 그대로 남아 있다.
+    Write-Fail "내려받은 파일을 푸는 데 실패했습니다. 기존 설치는 그대로 두었습니다. 다시 실행하세요."
     exit 1
   }
+  # 압축 해제가 성공한 뒤에야 기존 설치를 교체한다.
+  # 먼저 지우면 해제 실패 시 도구가 사라진 채 재실행해도 같은 실패가 반복된다.
+  if (Test-Path $RepoDir) { Remove-Item -Recurse -Force $RepoDir }
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $RepoDir) | Out-Null
+  Move-Item -Path $staging -Destination $RepoDir
+  Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue
   Save-CommitMarker
   Write-Ok "설치 완료 (커밋 $(Get-RepoCommit))"
 }
@@ -323,14 +357,18 @@ function Merge-McpConfig {
     Write-Fail "node 경로를 찾지 못했습니다. PowerShell을 다시 연 뒤 재실행하세요."
     exit 1
   }
-  if (-not (Test-Path $MergeScript)) {
-    Write-Fail "병합 스크립트가 없습니다: $MergeScript . 레포 clone 이 완전한지 확인하세요."
+  # clone 이후에는 설치된 레포의 merge 스크립트를 우선 사용한다.
+  # ⚠️ 이 순서가 중요하다. README 가 안내하는 설치 방법은 스크립트만 %TEMP% 에 받아
+  #    실행하므로 $MergeScript(스크립트 옆 경로)는 존재하지 않는다.
+  #    레포 폴백보다 먼저 $MergeScript 를 검사하면 정상 설치가 100% 실패한다.
+  $mergeInRepo = Join-Path $RepoDir "bootstrap\merge-mcp.mjs"
+  $merge = if (Test-Path $mergeInRepo) { $mergeInRepo }
+           elseif (Test-Path $MergeScript) { $MergeScript }
+           else { $null }
+  if (-not $merge) {
+    Write-Fail "병합 스크립트를 찾지 못했습니다. 찾아본 곳: $mergeInRepo, $MergeScript . 부트스트랩을 다시 실행하세요."
     exit 1
   }
-
-  # clone 이후에는 설치된 레포의 merge 스크립트를 우선 사용
-  $mergeInRepo = Join-Path $RepoDir "bootstrap\merge-mcp.mjs"
-  $merge = if (Test-Path $mergeInRepo) { $mergeInRepo } else { $MergeScript }
 
   $entry = Get-HelloEntry
   $beforeKeys = @()
@@ -339,9 +377,9 @@ function Merge-McpConfig {
   }
 
   Write-Info "등록: $ServerKey → $entry"
-  $out = & $nodePath $merge $McpJsonPath $ServerKey $nodePath $entry 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    Write-Fail "mcp.json 병합 실패:`n$($out | Out-String)"
+  $r = Invoke-Native $nodePath @($merge, $McpJsonPath, $ServerKey, $nodePath, $entry)
+  if ($r.ExitCode -ne 0) {
+    Write-Fail "mcp.json 병합 실패:`n$($r.Output)"
     exit 1
   }
   Write-Ok "mcp.json 저장: $McpJsonPath"
@@ -367,9 +405,9 @@ function Invoke-Verify {
   }
 
   Write-Info "opencircuit-hello handshake 검증 중..."
-  $output = & $nodePath $verify $nodePath $entry 2>&1
-  $code = $LASTEXITCODE
-  $text = ($output | Out-String).Trim()
+  $r = Invoke-Native $nodePath @($verify, $nodePath, $entry)
+  $code = $r.ExitCode
+  $text = $r.Output.Trim()
   if ($code -ne 0) {
     Write-Fail "검증 실패:`n$text"
     return $false
@@ -427,8 +465,9 @@ function Show-Doctor {
   if ($entry -and (Get-NodeMajor) -ge 20) {
     $verifyInRepo = Join-Path $RepoDir "bootstrap\verify.mjs"
     $verify = if (Test-Path $verifyInRepo) { $verifyInRepo } else { $VerifyScript }
-    $out = & (Get-NodePath) $verify (Get-NodePath) $entry 2>&1 | Out-String
-    if ($LASTEXITCODE -eq 0) {
+    $r = Invoke-Native (Get-NodePath) @($verify, (Get-NodePath), $entry)
+    $out = $r.Output
+    if ($r.ExitCode -eq 0) {
       $c = if ($out -match "COMMIT=(\S+)") { $Matches[1] } else { "unknown" }
       $verStatus = "OK (commit=$c)"
     } else {

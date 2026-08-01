@@ -33,9 +33,13 @@ Cursor가 이미 설치되어 있어야 합니다. 나머지(Node·git)는 부�
 **Windows** — PowerShell에서:
 
 ```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
 irm https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.ps1 -OutFile "$env:TEMP\oc-install.ps1"
 & "$env:TEMP\oc-install.ps1"
 ```
+
+> 첫 줄이 필요한 이유: Windows는 기본적으로 스크립트 실행을 막아 두었습니다.
+> 이 창에서만(`-Scope Process`) 일시적으로 허용하는 것이라 컴퓨터 설정은 그대로입니다.
 
 **macOS** — 터미널에서:
 

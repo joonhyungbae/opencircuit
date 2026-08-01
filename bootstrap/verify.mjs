@@ -41,6 +41,32 @@ const child = spawn(nodeBin, [entry], {
   env: process.env,
 });
 
+// 검증이 끝났는지 표시한다. 정상 종료 직전의 child.kill() 이
+// exit 핸들러를 깨워 "시작하자마자 종료됐다"고 오보하는 것을 막는다.
+let settled = false;
+
+// spawn 실패(node 경로가 틀림 등)는 예외가 아니라 'error' 이벤트로 온다.
+// 핸들러가 없으면 try/catch 로도 잡히지 않고 날 스택 트레이스가 그대로 노출된다.
+child.on("error", (err) => {
+  fail(
+    `서버를 실행하지 못했습니다: ${err?.message ?? err}. ` +
+      `Node 설치를 확인한 뒤 부트스트랩을 다시 실행하세요.`,
+  );
+});
+
+// 서버가 즉시 죽으면 타임아웃(20초)을 기다릴 이유가 없다.
+// 기다리면 실패 하나당 20초씩 수업 시간이 사라진다.
+child.on("exit", (code, signal) => {
+  if (!settled) {
+    const how = signal ? `신호 ${signal}` : `종료 코드 ${code}`;
+    fail(
+      `서버가 시작하자마자 종료됐습니다 (${how}). ` +
+        (stderr.trim() ? `서버 메시지: ${stderr.trim().split("\n")[0]}. ` : "") +
+        `부트스트랩을 --update 로 다시 실행해 보세요.`,
+    );
+  }
+});
+
 const pending = new Map();
 let nextId = 1;
 const buf = { value: "" };
@@ -78,6 +104,7 @@ function request(method, params) {
 }
 
 function fail(message) {
+  settled = true;
   console.error(message);
   if (stderr.trim()) {
     console.error("서버 메시지:", stderr.trim().slice(0, 500));
@@ -123,6 +150,7 @@ try {
   console.log(`COMMIT=${commit}`);
   console.log(text);
 
+  settled = true;
   child.kill();
   process.exit(0);
 } catch (err) {
