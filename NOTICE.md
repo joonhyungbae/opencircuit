@@ -11,11 +11,37 @@ by their original licenses; the repository [LICENSE](LICENSE) does not alter the
 
 ## 1. 저장소에 포함(벤더링)된 코드
 
-> 현재 없음 — 베이스라인 작업이 시작되면 아래 표에 채웁니다.
-
 | 경로 | 출처 | 원저작자 | 라이선스 | 수정 여부 |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| `baselines/p5-web/lib/p5.min.js` | https://p5js.org | Processing Foundation · p5.js Contributors | **LGPL-2.1** | 수정 없음 |
+
+### p5.js 확인 결과 (2026-08-01, https://p5js.org/copyright/ 기준)
+
+p5.js는 구성요소마다 라이선스가 다르다. 이걸 구분하지 않으면 사고가 난다.
+
+| 대상 | 라이선스 | 벤더링 |
+|---|---|---|
+| **라이브러리 본체** (`p5.js`, `p5.min.js`) | LGPL-2.1 | ✅ 가능 |
+| 웹사이트 | MIT | 해당 없음 |
+| **레퍼런스·예제 페이지 코드** | **CC BY-NC-SA 4.0** | ❌ **불가** |
+
+**예제 코드를 가져오지 않는다.** CC BY-NC-SA 4.0 의 ShareAlike 조항은 파생물에
+동일 라이선스를 요구하는데, 이 저장소의 [LICENSE](LICENSE)와 호환되지 않는다.
+예제를 복사·번안해 베이스라인을 만들면 베이스라인 전체가 CC BY-NC-SA 로 끌려간다.
+
+**베이스라인은 공식 문서(레퍼런스의 API 설명)를 참고해 직접 작성한다.**
+`createCanvas()`·`ellipse()` 같은 API 호출 자체는 저작물 복제가 아니라 사용이다.
+제한되는 것은 예제 페이지의 **특정 코드 텍스트**를 가져오는 행위다.
+
+**LGPL-2.1 준수 사항** (라이브러리 벤더링 시):
+
+- `p5.min.js` 를 **수정하지 않는다**. 수정하면 변경 사실을 명시해야 하고 LGPL 이 유지된다
+- `baselines/p5-web/lib/` 에 `license.txt`(LGPL 원문) 사본을 함께 둔다
+- 가져온 **정확한 버전과 출처 URL** 을 기록해 소스 입수 경로를 보장한다
+- `<script src="lib/p5.min.js">` 로 평문 로드해 수강생이 교체·수정할 수 있게 둔다
+  (LGPL 이 요구하는 relink 가능성을 이 형태가 충족한다)
+- 우리가 작성한 `sketch.js` 등에는 이 저장소의 LICENSE 가 적용된다.
+  LGPL 은 라이브러리에만 적용되고 이를 사용하는 저작물로 전이되지 않는다
 
 ### 기록 규칙
 
