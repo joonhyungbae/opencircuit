@@ -163,7 +163,7 @@ ensure_cursor() {
 }
 
 hello_entry() {
-  echo "${REPO_DIR}/servers/hello/dist/index.js"
+  echo "${REPO_DIR}/core/hello/dist/index.js"
 }
 
 repo_commit() {

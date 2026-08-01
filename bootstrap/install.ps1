@@ -89,7 +89,7 @@ function Test-CursorPresent {
 }
 
 function Get-HelloEntry {
-  Join-Path $RepoDir "servers\hello\dist\index.js"
+  Join-Path $RepoDir "core\hello\dist\index.js"
 }
 
 function Get-RepoCommit {

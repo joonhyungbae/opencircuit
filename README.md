@@ -82,8 +82,13 @@ bash /tmp/oc-install.sh
 
 ```text
 opencircuit/
-├── servers/            # MCP 서버 (역할별)
-│   └── hello/
+├── tools/              # 소프트웨어별 번들 — 하나당 폴더 하나
+│   └── <소프트웨어>/
+│       ├── server/     #   MCP 서버 (선택)
+│       ├── baseline/   #   시작점 프로젝트 (선택)
+│       └── README.md
+├── core/               # 소프트웨어에 종속되지 않는 것
+│   └── hello/          #   설치·연결 검증
 ├── bootstrap/          # 설치 스크립트
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS
@@ -91,6 +96,10 @@ opencircuit/
 └── docs/
     └── architecture.md # 설계 원칙과 결정 기록
 ```
+
+폴더 이름은 **소프트웨어의 통용 이름**입니다 — 역할이나 수업 회차가 아닙니다.
+회차는 바뀌고 역할은 모호해지지만 도구 이름은 남기 때문입니다.
+규약은 [tools/README.md](tools/README.md)에 있습니다.
 
 설치되면 도구는 `~/.opencircuit/repo` 에 자리잡습니다.
 

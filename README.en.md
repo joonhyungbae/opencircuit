@@ -82,8 +82,13 @@ Each session's needs become one server.
 
 ```text
 opencircuit/
-├── servers/            # MCP servers, one per role
-│   └── hello/
+├── tools/              # One folder per piece of software
+│   └── <software>/
+│       ├── server/     #   MCP server (optional)
+│       ├── baseline/   #   Starting-point project (optional)
+│       └── README.md
+├── core/               # Not tied to any one piece of software
+│   └── hello/          #   Install and connection check
 ├── bootstrap/          # Install scripts
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS
@@ -91,6 +96,9 @@ opencircuit/
 └── docs/
     └── architecture.md # Design principles and decisions
 ```
+
+Folders are named after **the software**, not a role or a class session — sessions change
+and roles blur, but tool names last. See [tools/README.md](tools/README.md) for the convention.
 
 Once installed, the tools live in `~/.opencircuit/repo`.
 

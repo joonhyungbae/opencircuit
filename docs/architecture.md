@@ -34,7 +34,7 @@
 [Cursor / Claude Code / Codex]
         │  stdio (MCP)
         ▼
-  ~/.opencircuit/repo/servers/*/dist  (git clone + 로컬 빌드)
+  ~/.opencircuit/repo/{core,tools}/*/dist  (git clone + 로컬 빌드)
 ```
 
 ---
@@ -93,7 +93,7 @@ Phase 4에서 `instructions/` 원본 → `.cursor/rules`, `CLAUDE.md`, `AGENTS.m
 실패하기 쉽고 핫픽스 전달도 불확실하다.
 
 **결정**: 부트스트랩이 레포를 `~/.opencircuit/repo`에 clone하고, 의존성 설치·빌드 후
-`node` + `servers/hello/dist/index.js` 절대경로로 등록한다. 기동 시에는 네트워크가 필요 없다.
+`node` + `core/hello/dist/index.js` 절대경로로 등록한다. 기동 시에는 네트워크가 필요 없다.
 
 `package.json`의 `name`(`@opencircuit/mcp-hello` 등)은 워크스페이스 식별용으로만 남긴다.
 npm org 확보·publish·마이너 버전 고정은 **하지 않는다**. 나중에 필요하면 그때 얹는다.
@@ -146,23 +146,34 @@ Phase 1부터 서버 항목에 `env` 자리를 잡아, Phase 3(`APIFRAME_KEY` �
   "mcpServers": {
     "opencircuit-hello": {
       "command": "node",
-      "args": ["C:\\Users\\…\\.opencircuit\\repo\\servers\\hello\\dist\\index.js"],
+      "args": ["C:\\Users\\…\\.opencircuit\\repo\\core\\hello\\dist\\index.js"],
       "env": {}
     }
   }
 }
 ```
 
-macOS 예: `"args": ["/Users/…/.opencircuit/repo/servers/hello/dist/index.js"]`.
+macOS 예: `"args": ["/Users/…/.opencircuit/repo/core/hello/dist/index.js"]`.
 `command`는 양쪽 모두 `node` (필요하면 `node`의 절대경로). `cmd /c` 래핑 없음.
 
-### 이름 규칙
+### 이름 규칙 — 축은 소프트웨어다
+
+이 저장소는 이번 프로그램용 도구 모음에 그치지 않고, **아트앤테크 작업에 필요한 도구를
+계속 갱신·공유하는 오픈 저장소**를 지향한다. 그래서 조직 축을 회차나 역할이 아니라
+**소프트웨어**로 잡는다. 회차는 바뀌고 역할은 모호해지지만 도구 이름은 남는다.
 
 | 대상 | 규칙 | 예 |
 |---|---|---|
-| 레포 폴더 | `servers/<역할>/` | `servers/hello/` |
-| Cursor MCP 키 | `opencircuit-<역할>` | `opencircuit-hello` |
+| 도구 폴더 | `tools/<소프트웨어>/` | `tools/p5js/`, `tools/arduino/` |
+| 도구 안 구성 | `server/` · `baseline/` (둘 중 하나만 있어도 됨) | `tools/p5js/baseline/` |
+| 공통 인프라 | `core/<이름>/` | `core/hello/` |
+| Cursor MCP 키 | `opencircuit-<소프트웨어>` | `opencircuit-p5js` |
 | 수강생 설치 위치 | `~/.opencircuit/repo` | — |
+
+각 `tools/<소프트웨어>/` 는 **혼자 떼어내도 말이 되게** 유지한다.
+README 와 NOTICE 를 도구마다 따로 둔다. 자세한 규약은 [tools/README.md](../tools/README.md).
+
+소프트웨어에 종속되지 않는 것(설치 검증 등)만 `core/` 에 둔다.
 
 `package.json` name(`@opencircuit/mcp-*`)은 워크스페이스용이며 배포·MCP 키와 무관하다.
 
@@ -175,11 +186,13 @@ macOS 예: `"args": ["/Users/…/.opencircuit/repo/servers/hello/dist/index.js"]
 
 ```
 opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요)
-  package.json                 # workspaces 루트
-  servers/
+  package.json                 # workspaces: core/* · tools/*/server
+  core/
     hello/                     # 검증용 최소 서버
       package.json             # name: @opencircuit/mcp-hello (식별용만)
       src/index.ts             # tool: ping
+  tools/                       # 소프트웨어별 번들 (아직 비어 있음)
+    README.md                  # 폴더 규약
   bootstrap/
     install.ps1                # Windows
     install.sh                 # macOS
@@ -193,11 +206,11 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 ```
 ~/.opencircuit/
   repo/                        # git clone
-    servers/hello/dist/index.js
+    core/hello/dist/index.js
   node/                        # (선택) macOS 홈 Node
 ```
 
-### `servers/hello`
+### `core/hello`
 
 - tool 하나: `ping`
 - description에 「설치·연결 검증용. 수업 시작 전 doctor와 함께 쓰세요」류 안내
@@ -219,7 +232,7 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 6. `~/.opencircuit/repo`에서 `npm install` 후 빌드
 7. **전역** `~/.cursor/mcp.json` 생성 또는 **병합**
    - `opencircuit-hello` → `command: node`,
-     `args: [<홈>/.opencircuit/repo/servers/hello/dist/index.js]`, `env: {}`
+     `args: [<홈>/.opencircuit/repo/core/hello/dist/index.js]`, `env: {}`
    - Windows/`cmd` 래핑 없음. macOS와 스키마 동일
 8. 서버 1회 실행으로 MCP handshake 검증, 결과를 한국어로 출력
 9. `--doctor`: Node / git / Cursor / mcp.json / 서버응답 / **현재 커밋 해시** 표

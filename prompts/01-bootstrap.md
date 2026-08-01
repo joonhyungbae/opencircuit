@@ -78,7 +78,7 @@ Cursor로 이식되지 않는다. 따라서 보통 스킬에 넣을 사용법·�
 ```
 opencircuit/
   package.json            # npm workspaces 루트
-  servers/
+  core/
     hello/                # @opencircuit/mcp-hello — 검증용 최소 서버
       package.json
       src/index.ts

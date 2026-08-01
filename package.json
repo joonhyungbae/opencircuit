@@ -5,7 +5,8 @@
   "description": "OpenCircuit 수강생용 MCP 도구 모노레포",
   "license": "SEE LICENSE IN LICENSE",
   "workspaces": [
-    "servers/*"
+    "core/*",
+    "tools/*/server"
   ],
   "engines": {
     "node": ">=20"

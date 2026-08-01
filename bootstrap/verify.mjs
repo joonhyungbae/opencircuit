@@ -128,6 +128,6 @@ try {
 } catch (err) {
   const message = err instanceof Error ? err.message : String(err);
   fail(
-    `서버 검증에 실패했습니다: ${message}. Node와 ~/.opencircuit/repo/servers/hello/dist 가 있는지 확인한 뒤 부트스트랩을 다시 실행하세요.`,
+    `서버 검증에 실패했습니다: ${message}. Node와 ~/.opencircuit/repo/core/hello/dist 가 있는지 확인한 뒤 부트스트랩을 다시 실행하세요.`,
   );
 }

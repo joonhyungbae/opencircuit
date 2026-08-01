@@ -13,7 +13,7 @@ by their original licenses; the repository [LICENSE](LICENSE) does not alter the
 
 | 경로 | 출처 | 원저작자 | 라이선스 | 수정 여부 |
 |---|---|---|---|---|
-| `baselines/p5-web/lib/p5.min.js` | https://p5js.org | Processing Foundation · p5.js Contributors | **LGPL-2.1** | 수정 없음 |
+| `tools/p5js/baseline/lib/p5.min.js` | https://p5js.org | Processing Foundation · p5.js Contributors | **LGPL-2.1** | 수정 없음 |
 
 ### p5.js 확인 결과 (2026-08-01, https://p5js.org/copyright/ 기준)
 
@@ -36,7 +36,7 @@ p5.js는 구성요소마다 라이선스가 다르다. 이걸 구분하지 않�
 **LGPL-2.1 준수 사항** (라이브러리 벤더링 시):
 
 - `p5.min.js` 를 **수정하지 않는다**. 수정하면 변경 사실을 명시해야 하고 LGPL 이 유지된다
-- `baselines/p5-web/lib/` 에 `license.txt`(LGPL 원문) 사본을 함께 둔다
+- `tools/p5js/baseline/lib/` 에 `license.txt`(LGPL 원문) 사본을 함께 둔다
 - 가져온 **정확한 버전과 출처 URL** 을 기록해 소스 입수 경로를 보장한다
 - `<script src="lib/p5.min.js">` 로 평문 로드해 수강생이 교체·수정할 수 있게 둔다
   (LGPL 이 요구하는 relink 가능성을 이 형태가 충족한다)

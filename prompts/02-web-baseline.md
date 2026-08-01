@@ -20,7 +20,7 @@ Cursor 기반 MCP 오케스트레이션으로 첫 시제작 만들기
 
 이건 회차별 수업 부속물이 **아니다**. 특정 강사의 수업 내용을 따라가지 않는다.
 **각 프리웨어로 작품을 만들기 위한 기반**이고, 프로그램이 끝난 뒤에도 수강생이 계속 쓴다.
-그래서 폴더 이름도 회차가 아니라 도구 기준이다: `baselines/p5-web/`
+그래서 폴더 이름도 회차가 아니라 도구 기준이다: `tools/p5js/`
 
 ---
 
@@ -47,7 +47,7 @@ p5js.org/examples 의 코드는 CC BY-NC-SA 4.0 이고, ShareAlike 조항이
 ### LGPL-2.1 준수 (라이브러리 벤더링)
 
 - `p5.min.js` 를 **절대 수정하지 마라**
-- `baselines/p5-web/lib/` 에 LGPL 원문 사본을 `license.txt` 로 함께 둔다
+- `tools/p5js/baseline/lib/` 에 LGPL 원문 사본을 `license.txt` 로 함께 둔다
 - 가져온 **정확한 버전과 다운로드 URL** 을 [NOTICE.md](../NOTICE.md) 표에 기록한다
 - `<script src="lib/p5.min.js">` 로 평문 로드해 수강생이 교체할 수 있게 둔다
 - 우리가 쓴 `sketch.js` 에는 저장소 LICENSE 가 적용된다 (LGPL 은 전이되지 않는다)
@@ -56,23 +56,28 @@ p5js.org/examples 의 코드는 CC BY-NC-SA 4.0 이고, ShareAlike 조항이
 
 ## 이번 작업 범위
 
-**웹 베이스라인 1개 + `mcp-station`의 로컬 부분.**
+**웹 베이스라인 1개 + `tools/p5js/server` (로컬 부분만).**
 GitHub 연동과 APIFrame 은 다음 페이즈다. 미리 만들지 마라.
 
-```
+```text
 opencircuit/
-  baselines/
-    p5-web/                  # 수강생에게 복사될 원본
-      index.html
-      sketch.js
-      style.css
-      README.md              # 수강생용 한국어 안내
-      lib/                   # 벤더링한 p5.js (0단계 결과에 따름)
-  servers/
-    station/                 # @opencircuit/mcp-station
-      package.json
-      src/index.ts
+  tools/
+    p5js/                    # 소프트웨어 하나 = 폴더 하나
+      baseline/              #   수강생에게 복사될 원본
+        index.html
+        sketch.js
+        style.css
+        lib/                 #   벤더링한 p5.min.js + license.txt
+        README.md            #   수강생용 한국어 안내
+      server/                #   @opencircuit/mcp-p5js
+        package.json
+        src/index.ts
+      README.md              #   이 도구로 무엇을 할 수 있는지
+      NOTICE.md              #   p5.js LGPL-2.1 고지
 ```
+
+폴더 규약은 [tools/README.md](../tools/README.md)를 따른다.
+**`servers/` 는 더 이상 없다** — `core/`(공통)와 `tools/<소프트웨어>/`(도구별)로 갈렸다.
 
 ### 베이스라인 요구사항
 
@@ -101,7 +106,12 @@ const 속도 = 0.5;          // 움직이는 빠르기
 
 **하나만 만든다.** 웹캠·사운드 변형은 다음 페이즈다.
 
-### `mcp-station` tools (로컬 부분만)
+### `tools/p5js/server` 의 tools
+
+MCP 키는 `opencircuit-p5js`, 패키지명은 `@opencircuit/mcp-p5js`.
+
+> GitHub 배포는 이 서버에 넣지 마라. 그건 `tools/github/` 의 일이고 Phase 3이다.
+> 이 서버는 **p5.js 프로젝트를 만들고 미리 보는 것**까지만 한다.
 
 | tool | 하는 일 |
 |---|---|
@@ -123,19 +133,19 @@ const 속도 = 0.5;          // 움직이는 빠르기
   `create_work` 반환에 "이제 `sketch.js`의 색을 바꿔보고 `preview_work`를 부르세요" 를 담아라
 - **실패는 한국어로 원인 + 다음 행동**
 - 부트스트랩이 새 서버를 `~/.cursor/mcp.json`에 등록하도록 갱신하라
-  (키: `opencircuit-station`, `merge-mcp.mjs` 재사용)
+  (키: `opencircuit-p5js`, `merge-mcp.mjs` 재사용)
 
 ---
 
 ## 수락 기준
 
-- [ ] `baselines/p5-web/index.html` 을 브라우저로 직접 열면 **네트워크 없이** 동작한다
+- [ ] `tools/p5js/baseline/index.html` 을 브라우저로 직접 열면 **네트워크 없이** 동작한다
 - [ ] `create_work` 로 만든 폴더가 `~/Documents/OpenCircuit/<이름>` 에 생기고 바로 열린다
 - [ ] `~/.opencircuit` 하위를 대상으로 하면 거부하고 이유를 한국어로 설명한다
 - [ ] `preview_work` 가 URL 을 반환하고 그 주소에서 스케치가 보인다
 - [ ] 포트 충돌 시 다른 포트로 뜬다
 - [ ] `sketch.js` 상단 파라미터를 바꾸고 새로고침하면 눈에 보이게 달라진다
-- [ ] 부트스트랩 실행 후 `opencircuit-station` 이 mcp.json 에 등록된다
+- [ ] 부트스트랩 실행 후 `opencircuit-p5js` 가 mcp.json 에 등록된다
 - [ ] 기존 `opencircuit-hello` 항목이 보존된다
 - [ ] [NOTICE.md](../NOTICE.md) 에 p5.js 항목이 채워져 있다
 - [ ] 모든 실패 메시지가 한국어이고 다음 행동을 지시한다
@@ -155,9 +165,9 @@ const 속도 = 0.5;          // 움직이는 빠르기
 
 ## 작업 순서
 
-1. **0단계 라이선스 확인 → 보고 → 승인 대기**
-2. `baselines/p5-web/` 작성, 브라우저에서 직접 검증
-3. `servers/station/` 작성
+1. 0단계 준수사항 숙지 (조사 불필요 — 이미 끝났다)
+2. `tools/p5js/baseline/` 작성, 브라우저에서 직접 검증
+3. `tools/p5js/server/` 작성
 4. 부트스트랩 갱신
 5. 이 머신에서 전체 흐름 실검증 후 보고
 
@@ -166,7 +176,7 @@ const 속도 = 0.5;          // 움직이는 빠르기
 # 다음 페이즈 (지금 하지 말 것)
 
 **Phase 3 — GitHub 연동**
-`mcp-station` 에 GitHub OAuth **Device Flow** 를 직접 구현한다
+`tools/github/server` 를 새로 만들고 GitHub OAuth **Device Flow** 를 직접 구현한다
 (`gh` CLI 나 Personal Access Token 을 쓰지 않는다 — 추가 설치와 토큰 복사를 피한다).
 수강생은 화면에 뜬 코드를 브라우저에 입력하는 것으로 끝난다.
 이후 레포 생성 · 커밋 · GitHub Pages 배포 · 라이브 URL 반환.
