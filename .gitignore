@@ -1,5 +1,6 @@
 node_modules/
 dist/
+!web/public/jeeliz/dist/
 *.tsbuildinfo
 .DS_Store
 _*.txt
