@@ -98,7 +98,7 @@ export function ensureWorkDir(work: string, workPath?: string): string {
 
 function gallerySource(): string {
   const here = dirname(fileURLToPath(import.meta.url));
-  return resolve(here, "..", "..", "threejs", "baseline");
+  return resolve(here, "..", "..", "..", "threejs", "baseline");
 }
 
 function copyGalleryIfNeeded(workDir: string): void {

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { UserFacingError } from "../../tools/apiframe/server/dist/korean.js";
+import { UserFacingError } from "../../tools/apiframe/server/src/korean.js";
 
 function homeDir(): string {
   if (process.platform === "win32") {

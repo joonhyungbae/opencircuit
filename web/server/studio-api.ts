@@ -9,10 +9,10 @@ import {
   submitVideo,
   waitForJobs,
   type Job,
-} from "../../tools/apiframe/server/dist/apiframe.js";
-import { estimateImage, estimateMusic, estimateVideo, formatActualCost } from "../../tools/apiframe/server/dist/cost.js";
-import { UserFacingError, toUserMessage } from "../../tools/apiframe/server/dist/korean.js";
-import { defaultWorksRoot } from "../../tools/apiframe/server/dist/paths.js";
+} from "../../tools/apiframe/server/src/apiframe.js";
+import { estimateImage, estimateMusic, estimateVideo, formatActualCost } from "../../tools/apiframe/server/src/cost.js";
+import { UserFacingError, toUserMessage } from "../../tools/apiframe/server/src/korean.js";
+import { defaultWorksRoot } from "../../tools/apiframe/server/src/paths.js";
 import {
   appendItem,
   ensureWorkDir,
@@ -29,7 +29,7 @@ import {
   writeManifest,
   type MediaType,
   type PendingJob,
-} from "../../tools/apiframe/server/dist/workspace.js";
+} from "../../tools/apiframe/server/src/workspace.js";
 import { keyHint, loadApiFrameKey, saveApiFrameKey } from "./key.js";
 import { MODEL_OPTIONS, pickModel } from "./models.js";
 
