@@ -5,6 +5,7 @@
  */
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -71,8 +72,8 @@ server.registerTool(
     description:
       "OpenCircuit MCP 설치·연결 검증용. 인자 없음. " +
       "수업 시작 전·부트스트랩 --doctor와 함께 쓰세요. " +
-      "실패 시 Cursor를 재시작한 뒤 ~/.cursor/mcp.json 의 opencircuit-hello 항목과 " +
-      "Node 설치 여부, ~/.opencircuit/repo 빌드 여부를 확인하세요. " +
+      `실패 시 Cursor를 재시작한 뒤 ${join(homedir(), ".cursor", "mcp.json")} 의 opencircuit-hello 항목과 ` +
+      `Node 설치 여부, ${join(homedir(), ".opencircuit", "repo")} 빌드 여부를 확인하세요. ` +
       "흔한 실패: 서버 미등록, Node 미설치, dist 미빌드.",
   },
   async () => {

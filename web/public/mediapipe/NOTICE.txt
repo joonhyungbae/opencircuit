@@ -1,0 +1,8 @@
+MediaPipe Hand Landmarker
+Apache License 2.0 — Google
+
+hand_landmarker.task
+https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+
+WASM runtime is npm @mediapipe/tasks-vision (Apache-2.0),
+served from node_modules at /mediapipe/wasm/.

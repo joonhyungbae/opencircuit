@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>전시장</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #1a1814; overflow: hidden; }
+    canvas { display: block; }
+    #안내 {
+      position: absolute; left: 16px; right: 16px; bottom: 16px;
+      max-width: 36rem; color: #f4efe6; font: 15px/1.5 system-ui, sans-serif;
+      background: rgba(20, 18, 14, 0.72); padding: 12px 14px; border-radius: 8px;
+    }
+    #안내[hidden] { display: none; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./lib/three.module.js",
+      "three/addons/controls/OrbitControls.js": "./lib/OrbitControls.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="안내"></div>
+  <script>
+    (function () {
+      var box = document.getElementById("안내");
+      function say(t) { box.hidden = !t; box.textContent = t || ""; }
+      if (location.protocol === "file:") {
+        say("파일을 직접 열면(file://) 작품 목록과 three.js 모듈을 읽지 못합니다. Cursor에서 이 파일을 연 뒤 미리보기(Preview)를 쓰거나, 이 폴더에서 npx --yes serve . 를 실행한 다음 나온 주소를 여세요.");
+        return;
+      }
+      fetch("./media/manifest.json", { cache: "no-store" })
+        .then(function (r) {
+          if (r.status === 404) return { items: [] };
+          if (!r.ok) throw new Error("bad");
+          return r.json();
+        })
+        .then(function (j) {
+          if (!j || !j.items || j.items.length === 0) {
+            say("아직 만든 것이 없습니다. Cursor에게 generate_image 를 시켜 보세요.");
+          }
+        })
+        .catch(function () {
+          say("작품 목록을 읽지 못했습니다. Cursor 미리보기나 npx --yes serve . 로 이 폴더를 여세요.");
+        });
+    })();
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    // ── 여기를 바꿔보세요 ────────────────────────────
+    const 벽색 = 0xf3ead8;     // 벽 색깔
+    const 바닥색 = 0xcbb892;   // 바닥 색깔
+    const 바닥보이기 = true;   // false 로 하면 바닥이 사라집니다
+    const 조명밝기 = 1.15;     // 클수록 밝아집니다
+    const 작품간격 = 2.6;      // 벽에 걸린 작품 사이 거리
+    const 방크기 = 14;         // 방의 한 변
+    // ────────────────────────────────────────────
+
+    const 안내 = document.getElementById("안내");
+    function 말하기(텍스트) {
+      안내.hidden = !텍스트;
+      안내.textContent = 텍스트 || "";
+    }
+
+    const 장면 = new THREE.Scene();
+    장면.background = new THREE.Color(0x2a261e);
+
+    const 카메라 = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      80,
+    );
+    카메라.position.set(0, 1.6, 5);
+
+    let 렌더러;
+    try {
+      렌더러 = new THREE.WebGLRenderer({ antialias: true });
+    } catch (e) {
+      말하기("이 브라우저에서 3D 방을 열지 못했습니다. Chrome 또는 Edge 로 다시 열어 보세요.");
+      throw e;
+    }
+    렌더러.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    렌더러.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(렌더러.domElement);
+
+    const 조작 = new OrbitControls(카메라, 렌더러.domElement);
+    조작.target.set(0, 1.4, 0);
+    조작.enableDamping = true;
+    조작.maxPolarAngle = Math.PI * 0.49;
+
+    장면.add(new THREE.AmbientLight(0xffffff, 0.45 * 조명밝기));
+    const 천장등 = new THREE.PointLight(0xfff4e0, 1.1 * 조명밝기, 30);
+    천장등.position.set(0, 4.2, 0);
+    장면.add(천장등);
+    const 창쪽 = new THREE.DirectionalLight(0xffe6c8, 0.35 * 조명밝기);
+    창쪽.position.set(-6, 5, 3);
+    장면.add(창쪽);
+
+    const 벽재질 = new THREE.MeshStandardMaterial({
+      color: 벽색,
+      roughness: 0.92,
+      side: THREE.BackSide,
+    });
+    const 방 = new THREE.Mesh(new THREE.BoxGeometry(방크기, 5, 방크기), 벽재질);
+    방.position.y = 2.5;
+    장면.add(방);
+
+    if (바닥보이기) {
+      const 바닥 = new THREE.Mesh(
+        new THREE.PlaneGeometry(방크기, 방크기),
+        new THREE.MeshStandardMaterial({ color: 바닥색, roughness: 0.85 }),
+      );
+      바닥.rotation.x = -Math.PI / 2;
+      바닥.position.y = 0.02;
+      장면.add(바닥);
+    }
+
+    const 재생목록 = [];
+
+    function 벽에걸기(메시, 순번, 전체) {
+      const 한줄 = Math.max(전체, 1);
+      const 가로 = (순번 - (한줄 - 1) / 2) * 작품간격;
+      메시.position.set(가로, 1.7, -방크기 / 2 + 0.12);
+      장면.add(메시);
+    }
+
+    function 이미지판(텍스처) {
+      const 비율 = 텍스처.image ? 텍스처.image.width / 텍스처.image.height : 1;
+      const 높이 = 1.6;
+      const 너비 = 높이 * Math.min(Math.max(비율, 0.5), 2.2);
+      const 판 = new THREE.Mesh(
+        new THREE.PlaneGeometry(너비, 높이),
+        new THREE.MeshBasicMaterial({ map: 텍스처 }),
+      );
+      return 판;
+    }
+
+    function 빈방안내() {
+      말하기("아직 만든 것이 없습니다. Cursor에게 generate_image 를 시켜 보세요.");
+    }
+
+    async function 매니페스트읽기() {
+      if (location.protocol === "file:") {
+        말하기(
+          "파일을 직접 열면(file://) 작품 목록을 읽지 못합니다. Cursor에서 이 파일을 연 뒤 미리보기(Preview)를 쓰거나, 이 폴더에서 npx --yes serve . 를 실행한 다음 나온 주소를 여세요.",
+        );
+        return null;
+      }
+      try {
+        const 응답 = await fetch("./media/manifest.json", { cache: "no-store" });
+        if (응답.status === 404) return { work: "", items: [] };
+        if (!응답.ok) {
+          말하기("작품 목록을 읽지 못했습니다. media/manifest.json 이 있는지 확인하세요.");
+          return null;
+        }
+        return await 응답.json();
+      } catch {
+        말하기(
+          "작품 목록을 읽지 못했습니다. 로컬 서버로 이 폴더를 열고 있는지 확인하세요. 예: npx --yes serve .",
+        );
+        return null;
+      }
+    }
+
+    async function 걸기() {
+      const 목록 = await 매니페스트읽기();
+      if (!목록) return;
+      const 항목 = Array.isArray(목록.items) ? 목록.items : [];
+      if (항목.length === 0) {
+        빈방안내();
+        return;
+      }
+
+      const 보임 = 항목.filter((it) => it && (it.type === "image" || it.type === "video"));
+      let 순번 = 0;
+      const 소리들 = [];
+
+      for (const it of 항목) {
+        if (!it || !it.file) continue;
+        const 주소 = "./media/" + it.file;
+        if (it.type === "image") {
+          const 텍스처 = await new Promise((resolve, reject) => {
+            new THREE.TextureLoader().load(주소, resolve, undefined, reject);
+          }).catch(() => null);
+          if (텍스처) {
+            텍스처.colorSpace = THREE.SRGBColorSpace;
+            벽에걸기(이미지판(텍스처), 순번, 보임.length);
+            순번 += 1;
+          }
+        } else if (it.type === "video") {
+          const 비디오 = document.createElement("video");
+          비디오.src = 주소;
+          비디오.loop = true;
+          비디오.muted = true;
+          비디오.playsInline = true;
+          비디오.crossOrigin = "anonymous";
+          const 재생 = 비디오.play();
+          if (재생 && typeof 재생.catch === "function") 재생.catch(() => {});
+          const 텍스처 = new THREE.VideoTexture(비디오);
+          텍스처.colorSpace = THREE.SRGBColorSpace;
+          벽에걸기(이미지판(텍스처), 순번, 보임.length);
+          재생목록.push(비디오);
+          순번 += 1;
+        } else if (it.type === "music") {
+          const 오디오 = new Audio(주소);
+          오디오.loop = true;
+          소리들.push(오디오);
+        }
+      }
+
+      if (순번 === 0 && 소리들.length === 0) {
+        빈방안내();
+        return;
+      }
+
+      if (소리들.length) {
+        말하기("클릭하면 이 방의 음악이 납니다. 드래그해서 둘러보세요.");
+        const 시작 = () => {
+          for (const a of 소리들) {
+            a.play().catch(() => {});
+          }
+          말하기("드래그해서 방을 둘러보세요.");
+          window.removeEventListener("pointerdown", 시작);
+        };
+        window.addEventListener("pointerdown", 시작);
+      } else {
+        말하기("드래그해서 방을 둘러보세요.");
+      }
+    }
+
+    걸기().catch(() => {
+      말하기("전시장을 준비하지 못했습니다. 페이지를 새로고침해 보세요.");
+    });
+
+    window.addEventListener("resize", () => {
+      카메라.aspect = window.innerWidth / window.innerHeight;
+      카메라.updateProjectionMatrix();
+      렌더러.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function 매프레임() {
+      requestAnimationFrame(매프레임);
+      조작.update();
+      렌더러.render(장면, 카메라);
+    }
+    매프레임();
+  </script>
+</body>
+</html>

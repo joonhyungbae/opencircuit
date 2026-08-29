@@ -15,19 +15,7 @@
 **수강생 프로필이 설계를 지배한다: 개발자가 아니다.** 미디어아트/공연/시각예술 작가이고,
 터미널을 처음 여는 사람도 있다고 가정하라. "npm install 하세요"는 지시가 아니라 장벽이다.
 
-전체 커리큘럼(9회차)과 각 회차가 요구하는 스택:
-
-| 회차 | 날짜 | 주제 | 필요 스택 |
-|---|---|---|---|
-| 1 | 08.29 | Cursor 기반 MCP 오케스트레이션으로 첫 시제작 | Cursor, GitHub, APIFrame |
-| 2 | 09.02 | 아이스브레이킹 (온라인) | — |
-| 3 | 09.05 | 모션캡처·실시간 인터랙티브 | OSC, MoCap |
-| 4 | 09.19 | Unity 실시간 영상·인터랙션 | Unity, C# |
-| 5 | 10.24 | 생성형 AI 제작 파이프라인 | 이미지/영상 생성 API |
-| 6 | 11.07 | 키네틱·피지컬 컴퓨팅 | Arduino, 시리얼 |
-| 7 | 11.21 | 오픈포럼 「공유 지식 인프라」 | 문서화 |
-| 8 | 12.05 | 웹 사운드아트 | Web Audio API |
-| 9 | 12.12 | 공동 크리틱 | — |
+이 저장소의 축은 수업 일정이 아니라 소프트웨어 이름이다.
 
 ---
 
@@ -142,16 +130,16 @@ opencircuit/
 
 **Phase 2 — `@opencircuit/mcp-station`**
 수강생별 웹사이트(스테이션)의 GitHub 레포 생성·커밋·배포.
-1회차 실라버스의 "GitHub 사용법"에 대응하고, 이후 전 회차 산출물이 여기 쌓인다.
+수강생 사이트용 GitHub 레포를 만들고 배포한다.
 tool 후보: `create_station`, `publish_station`, `add_work_log`
 
 **Phase 3 — `@opencircuit/mcp-genmedia`**
-APIFrame 연동 이미지/영상 생성. 1회차 "첫 시제작"의 결과물이 나오는 부분.
+APIFrame 연동 이미지/영상 생성.
 ⚠️ APIFrame API 스펙은 추측하지 말고 공식 문서를 확인한 뒤 구현할 것.
 
 **Phase 4 (9월) — 호스트 이식**
 `instructions/` 단일 원본 → `.cursor/rules/*.mdc`, `CLAUDE.md`, `AGENTS.md` 생성 스크립트.
 Codex 는 `~/.codex/config.toml` (TOML) 이라 형식이 다르다.
 
-**Phase 5+ — 회차별 서버**
-`mcp-osc`(3·6·8회차 공용, 재사용 밀도 최고) → `mcp-unity`(4회차) → `mcp-webaudio`(8회차)
+**Phase 5+ — 도구 서버**
+`mcp-osc` → `mcp-unity` → `mcp-webaudio`

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>웹캠 → 문장</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      margin: 0; font: 16px/1.5 system-ui, sans-serif;
+      background: #f6f1e8; color: #1f1b16; padding: 20px;
+    }
+    main { max-width: 40rem; margin: 0 auto; }
+    h1 { font-size: 1.25rem; font-weight: 650; }
+    #상태 {
+      padding: 10px 12px; border-radius: 8px; background: #efe4c8;
+      margin: 12px 0;
+    }
+    #상태[data-kind="slow"] { background: #f3d2b3; }
+    #상태[data-kind="ok"] { background: #d8ead2; }
+    #상태[data-kind="err"] { background: #f3c6c6; }
+    video {
+      width: 100%; max-height: 280px; background: #111; border-radius: 8px;
+      object-fit: cover;
+    }
+    textarea {
+      width: 100%; min-height: 5rem; box-sizing: border-box;
+      font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #c9bda8;
+    }
+    .줄 { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    button {
+      font: inherit; padding: 8px 14px; border: 0; border-radius: 8px;
+      background: #1f1b16; color: #f6f1e8; cursor: pointer;
+    }
+    button[disabled] { opacity: 0.45; cursor: not-allowed; }
+    button.보조 { background: #6b5e4b; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "onnxruntime-web/webgpu": "./lib/ort.webgpu.bundle.min.mjs",
+      "onnxruntime-common": "./lib/onnxruntime-common.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <main>
+    <h1>웹캠에서 문장 하나</h1>
+    <p>재료를 카메라 앞에 두세요. 나온 문장을 복사해 Cursor에게 주면 이미지나 영상이 됩니다.</p>
+    <div id="상태">준비 중…</div>
+    <video id="캠" autoplay playsinline muted></video>
+    <div class="줄">
+      <button type="button" id="찍기" disabled>이 장면을 문장으로</button>
+    </div>
+    <label for="문장">결과 문장 — 직접 고쳐 써도 됩니다</label>
+    <textarea id="문장" placeholder="모델이 안 뜨면 여기에 직접 쓰세요. 예: 나무 책상 위에 푸른 그릇이 있다"></textarea>
+    <div class="줄">
+      <button type="button" id="복사" class="보조">문장 복사</button>
+    </div>
+  </main>
+  <script type="module">
+    import { pipeline, env } from "./lib/transformers.min.js";
+
+    const 모델이름 = "HuggingFaceTB/SmolVLM-256M-Instruct";
+    const 상태칸 = document.getElementById("상태");
+    const 캠 = document.getElementById("캠");
+    const 찍기 = document.getElementById("찍기");
+    const 문장칸 = document.getElementById("문장");
+    const 복사 = document.getElementById("복사");
+
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+
+    function 알림(텍스트, kind) {
+      상태칸.textContent = 텍스트;
+      if (kind) 상태칸.dataset.kind = kind;
+      else delete 상태칸.dataset.kind;
+    }
+
+    const 웹지피유 = typeof navigator !== "undefined" && "gpu" in navigator;
+    if (!웹지피유) {
+      알림("이 컴퓨터는 느린 모드로 돕니다 (WebGPU 없음). 문장이 나오기까지 더 걸릴 수 있습니다. 모델을 받는 중입니다 — 처음 한 번만, 약 500MB.", "slow");
+    } else {
+      알림("모델을 받는 중입니다 — 처음 한 번만, 약 500MB.", "");
+    }
+
+    let 파이프 = null;
+
+    async function 카메라켜기() {
+      try {
+        const 스트림 = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false,
+        });
+        캠.srcObject = 스트림;
+      } catch {
+        알림(
+          (상태칸.textContent ? 상태칸.textContent + " " : "") +
+            "카메라에 연결하지 못했습니다. 권한을 허용하거나, 아래 칸에 문장을 직접 쓰세요.",
+          "err",
+        );
+      }
+    }
+
+    function 한장찍기() {
+      const 캔버스 = document.createElement("canvas");
+      const 너비 = 캠.videoWidth || 640;
+      const 높이 = 캠.videoHeight || 480;
+      캔버스.width = 너비;
+      캔버스.height = 높이;
+      캔버스.getContext("2d").drawImage(캠, 0, 0, 너비, 높이);
+      return 캔버스.toDataURL("image/jpeg", 0.85);
+    }
+
+    function 문장뽑기(결과) {
+      if (!결과) return "";
+      if (typeof 결과 === "string") return 결과.trim();
+      if (Array.isArray(결과)) return 문장뽑기(결과[0]);
+      if (typeof 결과 === "object") {
+        if (typeof 결과.generated_text === "string") return 결과.generated_text.trim();
+        if (Array.isArray(결과.generated_text)) return 문장뽑기(결과.generated_text.at(-1));
+      }
+      return String(결과).trim();
+    }
+
+    async function 모델켜기() {
+      try {
+        const 설정 = 웹지피유
+          ? { device: "webgpu" }
+          : { device: "wasm" };
+        파이프 = await pipeline("image-to-text", 모델이름, 설정);
+        찍기.disabled = false;
+        알림(
+          웹지피유
+            ? "모델이 준비됐습니다. 재료를 두고 버튼을 누르세요."
+            : "느린 모드로 준비됐습니다. 재료를 두고 버튼을 누르세요. 시간이 더 걸립니다.",
+          웹지피유 ? "ok" : "slow",
+        );
+      } catch (err) {
+        파이프 = null;
+        찍기.disabled = true;
+        알림(
+          "모델이 뜨지 않았습니다. 아래 칸에 문장을 직접 쓴 뒤 복사하세요. 인터넷과 남은 저장 공간을 확인한 뒤 페이지를 새로고침해도 됩니다.",
+          "err",
+        );
+        void err;
+      }
+    }
+
+    찍기.addEventListener("click", async () => {
+      if (!파이프) {
+        알림("모델이 없습니다. 아래 칸에 직접 쓰세요.", "err");
+        return;
+      }
+      if (!캠.videoWidth) {
+        알림("카메라 화면이 아직 없습니다. 잠시 뒤 다시 누르거나 문장을 직접 쓰세요.", "err");
+        return;
+      }
+      찍기.disabled = true;
+      알림("장면을 읽고 있습니다…");
+      try {
+        const 사진 = 한장찍기();
+        const 결과 = await 파이프(사진, {
+          text: "Describe this scene in one short sentence.",
+          max_new_tokens: 40,
+        });
+        const 문장 = 문장뽑기(결과);
+        if (!문장) throw new Error("empty");
+        문장칸.value = 문장;
+        알림("문장이 나왔습니다. 마음에 안 들면 고쳐 쓰거나 다시 찍으세요.", "ok");
+      } catch {
+        알림("문장을 만들지 못했습니다. 아래 칸에 직접 쓰세요.", "err");
+      } finally {
+        찍기.disabled = !파이프;
+      }
+    });
+
+    복사.addEventListener("click", async () => {
+      const 값 = 문장칸.value.trim();
+      if (!값) {
+        알림("복사할 문장이 없습니다. 찍거나 직접 쓰세요.", "err");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(값);
+        알림("복사했습니다. Cursor에게 붙여 이미지를 만들어 보세요.", "ok");
+      } catch {
+        문장칸.select();
+        알림("복사 버튼이 막혔습니다. 문장을 드래그해 직접 복사하세요.", "err");
+      }
+    });
+
+    카메라켜기();
+    모델켜기();
+  </script>
+</body>
+</html>

@@ -41,12 +41,15 @@ irm https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/in
 > Why the first line: Windows blocks script execution by default. This allows it for
 > this window only (`-Scope Process`) — your system settings are unchanged.
 
-**macOS** — in Terminal:
+**macOS / Linux** — in Terminal:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.sh -o /tmp/oc-install.sh
 bash /tmp/oc-install.sh
 ```
+
+> Linux uses the same script. It will not `sudo`/`apt` install Node; if missing, Node is unpacked in the home folder.
+> On Windows, use the PowerShell steps above — do not run `install.sh` from Git Bash.
 
 When it finishes, **quit Cursor completely and reopen it**, then check that
 `opencircuit-hello` shows a green light in the MCP list. Then try asking Cursor:
@@ -55,30 +58,51 @@ When it finishes, **quit Cursor completely and reopen it**, then check that
 
 ---
 
+## Studio web
+
+The studio pages (caption, generate, gallery) are a React app with a light theme.
+Launch them from the repository root:
+
+**Windows** — PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\start.ps1
+```
+
+**macOS / Linux**:
+
+```bash
+./start.sh
+```
+
+The browser opens `http://127.0.0.1:1234`. Details → [web/README.md](web/README.md)
+
+---
+
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `install.ps1` / `install.sh` | Install (safe to run repeatedly) |
+| `install.ps1` / `install.sh` | Install tools (safe to run repeatedly) |
 | `--doctor` | Diagnose what's broken. **Try this first when something fails** |
 | `--update` | Update the tools to the latest version |
+| `start.ps1` / `start.sh` | Start the studio web |
 
 ---
 
 ## The servers
 
-Each session's needs become one server.
+One server per piece of software. This repository does not accumulate class sessions.
 
-| Server | Role | Session |
-|---|---|---|
-| `hello` | Install & connection check | — |
-| `station` | Create and publish a personal site | 1 · ongoing |
-| `genmedia` | Image and video generation pipeline | 1 · 5 |
-| `osc` | Motion capture, sensor, and sound bridge | 3 · 6 · 8 |
-| `unity` | Game engine integration | 4 |
-| `webaudio` | Web sound art | 8 |
+| Server | Role |
+|---|---|
+| `hello` | Install & connection check |
+| `apiframe` | Image, video, and music generation |
+| `github` | Create a repo and publish to Pages (planned) |
+| `p5js` | Web graphics baseline (planned) |
 
-> Only `hello` is implemented so far. The rest arrive alongside the class schedule.
+> Available now: `hello`, `apiframe`, the gallery (`tools/threejs/baseline`), and webcam captions (`tools/transformersjs/baseline`).
 
 ---
 
@@ -93,22 +117,27 @@ opencircuit/
 │       └── README.md
 ├── core/               # Not tied to any one piece of software
 │   └── hello/          #   Install and connection check
+├── web/                # Studio web (React, light theme)
+├── start.ps1           # Launch the studio web (Windows)
+├── start.sh            # Launch the studio web (macOS / Linux)
 ├── bootstrap/          # Install scripts
 │   ├── install.ps1     # Windows
-│   ├── install.sh      # macOS
+│   ├── install.sh      # macOS / Linux
 │   └── README.md       # Detailed guide for participants
 └── docs/
     └── architecture.md # Design principles and decisions
 ```
 
-Folders are named after **the software**, not a role or a class session — sessions change
-and roles blur, but tool names last. See [tools/README.md](tools/README.md) for the convention.
+Folders are named after **the software**, not a role or a class schedule.
+See [tools/README.md](tools/README.md) for the convention.
 
-Once installed, the tools live in `~/.opencircuit/repo`.
+Once installed, the tools live under `.opencircuit/repo` in the home folder
+(`%USERPROFILE%\.opencircuit\repo` on Windows, `~/.opencircuit/repo` on macOS and Linux).
 
 > [!IMPORTANT]
-> `~/.opencircuit` is **for tools only**.
+> `.opencircuit` is **for tools only**.
 > Don't keep artwork or working files in there — updates will conflict.
+> Artwork goes under `OpenCircuit` in the Documents folder (`문서` or `Documents` on Windows; XDG Documents on Linux).
 
 ---
 
@@ -138,9 +167,7 @@ More detail → [docs/architecture.md](docs/architecture.md)
 | **Venue** | Sasang Indi Station, and others |
 | **Host** | Busan Cultural Foundation |
 
-Nine teaching sessions, two field research trips, critique and installation — closing with a
-public showcase on December 19.
-Full curriculum → [opencircuit.club/curriculum](https://opencircuit.club/curriculum)
+About the program → [opencircuit.club](https://opencircuit.club)
 
 ---
 

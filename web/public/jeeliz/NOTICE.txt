@@ -1,0 +1,26 @@
+Jeeliz FaceFilter — Apache License 2.0
+Copyright Jeeliz / WebAR.rocks
+
+Vendored from https://github.com/jeeliz/jeelizFaceFilter
+commit 6f2695120b992511fd6cb1fd80c600bb957cd08c
+
+Included (unmodified unless noted):
+- dist/jeelizFaceFilter.js
+- neuralNets/NN_DEFAULT.json
+- helpers/JeelizThreeHelper.js
+- libs/three/v97/three.min.js          (three.js r97, MIT — bundled by Jeeliz)
+- libs/three/customMaterials/FlexMaterial/ThreeFlexMaterial.js
+- libs/tween/v16_3_5/Tween.min.js      (tween.js, MIT — bundled by Jeeliz)
+- official 3D assets from demos/threejs/dog_face, glassesVTO, tiger, werewolf
+
+License text: LICENSE (Apache-2.0)
+
+Unused high-resolution textures, animated werewolf.json (41MB),
+dev folders, and demo HTML/main.js were not copied.
+The studio host (web/src/lib/filters.ts) is our code; it loads these
+official meshes with the official helper.
+
+Modified:
+- helpers/JeelizThreeHelper.js — window.JeelizThreeHelper
+- demos/threejs/glassesVTO/JeelizThreeGlassesCreator.js — window.JeelizThreeGlassesCreator
+so both are available when loaded as a <script> tag.

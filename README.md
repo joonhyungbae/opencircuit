@@ -41,12 +41,15 @@ irm https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/in
 > 첫 줄이 필요한 이유: Windows는 기본적으로 스크립트 실행을 막아 두었습니다.
 > 이 창에서만(`-Scope Process`) 일시적으로 허용하는 것이라 컴퓨터 설정은 그대로입니다.
 
-**macOS** — 터미널에서:
+**macOS · Linux** — 터미널에서:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.sh -o /tmp/oc-install.sh
 bash /tmp/oc-install.sh
 ```
+
+> Linux 도 같은 스크립트입니다. `sudo` / `apt` 로 Node 를 깔지 않고, 없으면 홈 폴더에 풉니다.
+> Windows 의 Git Bash 에서는 이 파일을 쓰지 말고 위 PowerShell 안내를 따르세요.
 
 설치가 끝나면 **Cursor를 완전히 종료했다가 다시 열고**, MCP 목록에서 `opencircuit-hello`가
 초록불인지 확인하세요. 그다음 Cursor에게 이렇게 말해 보세요:
@@ -55,30 +58,51 @@ bash /tmp/oc-install.sh
 
 ---
 
+## 실습 웹
+
+실습 페이지(문장 만들기 · 생성 · 전시장)는 React 라이트 테마입니다.
+저장소 루트에서 아래만 실행하면 됩니다.
+
+**Windows** — PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force
+.\start.ps1
+```
+
+**macOS · Linux**:
+
+```bash
+./start.sh
+```
+
+브라우저가 `http://127.0.0.1:1234` 을 엽니다. 자세한 내용 → [web/README.md](web/README.md)
+
+---
+
 ## 명령
 
 | 명령 | 하는 일 |
 |---|---|
-| `install.ps1` / `install.sh` | 설치 (여러 번 실행해도 안전합니다) |
+| `install.ps1` / `install.sh` | 도구 설치 (여러 번 실행해도 안전합니다) |
 | `--doctor` | 어디가 문제인지 진단합니다. **안 될 때 가장 먼저 쓰세요** |
 | `--update` | 도구를 최신 버전으로 갱신합니다 |
+| `start.ps1` / `start.sh` | 실습 웹을 띄웁니다 |
 
 ---
 
 ## 담긴 도구
 
-회차별 수업에서 필요한 것을 서버 하나씩으로 만듭니다.
+소프트웨어별로 서버를 둡니다. 수업 일정은 이 저장소의 축이 아닙니다.
 
-| 서버 | 역할 | 대응 회차 |
-|---|---|---|
-| `hello` | 설치·연결 검증 | — |
-| `station` | 개인 웹사이트(스테이션) 생성·배포 | 1회차 · 상시 |
-| `genmedia` | 이미지·영상 생성 파이프라인 | 1 · 5회차 |
-| `osc` | 모션캡처·센서·사운드 브리지 | 3 · 6 · 8회차 |
-| `unity` | 게임 엔진 연동 | 4회차 |
-| `webaudio` | 웹 사운드아트 | 8회차 |
+| 서버 | 역할 |
+|---|---|
+| `hello` | 설치·연결 검증 |
+| `apiframe` | 이미지·영상·음악 생성 |
+| `github` | 레포 생성·Pages 배포 (예정) |
+| `p5js` | 웹 그래픽 베이스라인 (예정) |
 
-> 현재는 `hello`만 구현되어 있습니다. 나머지는 수업 일정에 맞춰 추가됩니다.
+> 지금 쓸 수 있는 것: `hello`, `apiframe`, 전시장(`tools/threejs/baseline`), 웹캠 문장(`tools/transformersjs/baseline`).
 
 ---
 
@@ -93,23 +117,27 @@ opencircuit/
 │       └── README.md
 ├── core/               # 소프트웨어에 종속되지 않는 것
 │   └── hello/          #   설치·연결 검증
+├── web/                # 실습 웹 (React, 라이트 테마)
+├── start.ps1           # 실습 웹 실행 (Windows)
+├── start.sh            # 실습 웹 실행 (macOS · Linux)
 ├── bootstrap/          # 설치 스크립트
 │   ├── install.ps1     # Windows
-│   ├── install.sh      # macOS
+│   ├── install.sh      # macOS · Linux
 │   └── README.md       # 수강생용 상세 안내
 └── docs/
     └── architecture.md # 설계 원칙과 결정 기록
 ```
 
-폴더 이름은 **소프트웨어의 통용 이름**입니다 — 역할이나 수업 회차가 아닙니다.
-회차는 바뀌고 역할은 모호해지지만 도구 이름은 남기 때문입니다.
+폴더 이름은 **소프트웨어의 통용 이름**입니다. 역할이나 수업 일정으로 부르지 않습니다.
 규약은 [tools/README.md](tools/README.md)에 있습니다.
 
-설치되면 도구는 `~/.opencircuit/repo` 에 자리잡습니다.
+설치되면 도구는 홈 아래 `.opencircuit/repo` 에 자리잡습니다.
+Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/repo` 입니다.
 
 > [!IMPORTANT]
-> `~/.opencircuit` 은 **도구 전용** 폴더입니다.
+> `.opencircuit` 은 **도구 전용** 폴더입니다.
 > 작품이나 작업 파일은 이 안에 두지 마세요 — 업데이트할 때 충돌합니다.
+> 작품은 문서 폴더의 `OpenCircuit` 아래에 둡니다 (Windows `문서` 또는 `Documents`, Linux 는 XDG 문서 폴더).
 
 ---
 
@@ -139,8 +167,7 @@ opencircuit/
 | **장소** | 사상인디스테이션 외 |
 | **주최** | 부산문화재단 |
 
-교육 9회, 국내외 사례조사 2회, 크리틱과 설치를 거쳐 12월 19일 성과공유회로 마칩니다.
-전체 커리큘럼 → [opencircuit.club/curriculum](https://opencircuit.club/curriculum)
+프로그램 소개 → [opencircuit.club](https://opencircuit.club)
 
 ---
 

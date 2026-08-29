@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# OpenCircuit 수강생용 부트스트랩 (macOS)
+# OpenCircuit 수강생용 부트스트랩 (macOS · Linux)
+# Windows 는 install.ps1 을 쓰세요. Git Bash 에서 이 파일을 실행하면 안내 후 중단합니다.
 set -euo pipefail
 
 REPO_URL="https://github.com/joonhyungbae/opencircuit.git"
@@ -10,7 +11,9 @@ COMMIT_API_URL="https://api.github.com/repos/joonhyungbae/opencircuit/commits/ma
 # Windows 는 winget 이 Node 22 LTS 대를 설치한다. 여기서 20 을 고정하면
 # OS 간 메이저 버전이 벌어져, 강사가 Windows 에서 재현되지 않는 mac 문제를 만나게 된다.
 NODE_PIN="v22.20.0"
-SERVER_KEY="opencircuit-hello"
+# macOS bash 3.2 에는 연관 배열이 없으므로 키·경로를 나란히 둔다.
+SERVER_KEYS=("opencircuit-hello" "opencircuit-apiframe")
+SERVER_RELS=("core/hello/dist/index.js" "tools/apiframe/server/dist/index.js")
 LEGACY_KEYS=("opencircuit-hello-dev")
 HAS_GIT=0
 CURSOR_DOWNLOAD_URL="https://cursor.com/download"
@@ -38,6 +41,34 @@ ok() { printf '[성공] %s\n' "$*"; }
 warn() { printf '[주의] %s\n' "$*"; }
 fail() { printf '[실패] %s\n' "$*" >&2; exit 1; }
 
+# Windows / macOS / Linux 를 구분한다. 수강생 메시지는 이 컴퓨터의 경로를 쓴다.
+OC_OS=""
+GIT_DOWNLOAD_URL=""
+case "$(uname -s)" in
+  Darwin)
+    OC_OS=darwin
+    GIT_DOWNLOAD_URL="https://git-scm.com/download/mac"
+    ;;
+  Linux)
+    OC_OS=linux
+    GIT_DOWNLOAD_URL="https://git-scm.com/download/linux"
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    fail "Windows 에서는 PowerShell 의 install.ps1 을 실행하세요. Git Bash 로는 설치하지 않습니다."
+    ;;
+  *)
+    fail "지원하지 않는 운영체제입니다: $(uname -s). Windows 는 install.ps1, macOS·Linux 는 install.sh 입니다."
+    ;;
+esac
+
+os_label() {
+  if [[ "$OC_OS" == darwin ]]; then
+    echo "macOS"
+  else
+    echo "Linux"
+  fi
+}
+
 node_major() {
   if ! command -v node >/dev/null 2>&1; then
     echo ""
@@ -52,6 +83,10 @@ refresh_path() {
     eval "$(/opt/homebrew/bin/brew shellenv)"
   elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
+  elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  elif [[ -x "${HOME}/.linuxbrew/bin/brew" ]]; then
+    eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"
   fi
 }
 
@@ -62,11 +97,19 @@ ensure_path_persist_node_home() {
       return
     fi
   done
-  local target="${HOME}/.zprofile"
+  local target
+  if [[ "$OC_OS" == linux ]]; then
+    case "${SHELL:-}" in
+      */zsh) target="${HOME}/.zshrc" ;;
+      *) target="${HOME}/.bashrc" ;;
+    esac
+  else
+    target="${HOME}/.zprofile"
+  fi
   echo "" >> "$target"
   echo "# OpenCircuit Node (관리자 권한 없이 홈에 설치)" >> "$target"
   echo "$line" >> "$target"
-  ok "PATH에 ~/.opencircuit/node/bin 을 ${target} 에 추가했습니다."
+  ok "PATH에 ${HOME}/.opencircuit/node/bin 을 ${target} 에 추가했습니다."
 }
 
 install_node_tarball() {
@@ -75,14 +118,14 @@ install_node_tarball() {
   case "$uname_m" in
     arm64|aarch64) arch="arm64" ;;
     x86_64) arch="x64" ;;
-    *) fail "지원하지 않는 Mac 아키텍처입니다: ${uname_m}. https://nodejs.org 에서 Node 20 LTS 를 확인하세요." ;;
+    *) fail "지원하지 않는 아키텍처입니다: ${uname_m}. https://nodejs.org 에서 Node 20 LTS 를 확인하세요." ;;
   esac
 
-  info "공식 Node 바이너리를 ~/.opencircuit/node 에 풉니다 (레포 clone 경로와 분리)."
+  info "공식 Node 바이너리를 ${NODE_HOME_DIR} 에 풉니다 (레포 clone 경로와 분리)."
   mkdir -p "${HOME_OC}"
   tmp="$(mktemp -d)"
   ver="${NODE_PIN}"
-  tarball="node-${ver}-darwin-${arch}.tar.gz"
+  tarball="node-${ver}-${OC_OS}-${arch}.tar.gz"
   url="https://nodejs.org/dist/${ver}/${tarball}"
   info "다운로드: ${url}"
   if ! curl -fL --progress-bar -o "${tmp}/${tarball}" "$url"; then
@@ -126,7 +169,11 @@ ensure_node() {
     fi
     warn "Homebrew 설치 후에도 Node 20+ 를 찾지 못했습니다. 홈 타르볼 설치로 넘어갑니다."
   else
-    info "Homebrew가 없습니다. 관리자 암호가 필요한 .pkg 대신 ~/.opencircuit/node 에 Node를 풉니다."
+    if [[ "$OC_OS" == darwin ]]; then
+      info "Homebrew가 없습니다. 관리자 암호가 필요한 .pkg 대신 ${NODE_HOME_DIR} 에 Node를 풉니다."
+    else
+      info "패키지 관리자(apt 등)로 Node를 설치하지 않습니다. ${NODE_HOME_DIR} 에 Node를 풉니다."
+    fi
   fi
 
   install_node_tarball
@@ -153,21 +200,37 @@ probe_git() {
   fi
   HAS_GIT=0
   warn "git이 없습니다. 내려받기(tarball) 방식으로 설치합니다 — 설치·사용에는 문제가 없습니다."
-  info "나중에 git이 필요해지면 https://git-scm.com/download/mac 에서 설치하고 부트스트랩을 다시 실행하세요."
+  info "나중에 git이 필요해지면 ${GIT_DOWNLOAD_URL} 에서 설치하고 부트스트랩을 다시 실행하세요."
+}
+
+cursor_present() {
+  if command -v cursor >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ "$OC_OS" == darwin ]]; then
+    # ~/Applications 에 설치한 사용자도 인정한다 (관리자 권한 없이 설치하면 여기로 간다).
+    [[ -d "/Applications/Cursor.app" || -d "${HOME}/Applications/Cursor.app" ]] && return 0
+    return 1
+  fi
+  [[ -x "${HOME}/.local/bin/cursor" ]] && return 0
+  [[ -d "${HOME}/.local/share/cursor" ]] && return 0
+  [[ -x /opt/Cursor/cursor || -x /opt/cursor/cursor || -x /usr/bin/cursor || -x /usr/local/bin/cursor ]] && return 0
+  [[ -f "${HOME}/.local/share/applications/cursor.desktop" ]] && return 0
+  if compgen -G "${HOME}/Applications/Cursor*.AppImage" >/dev/null; then return 0; fi
+  if compgen -G "${HOME}/.local/bin/Cursor*.AppImage" >/dev/null; then return 0; fi
+  return 1
 }
 
 ensure_cursor() {
-  # ~/Applications 에 설치한 사용자도 인정한다 (관리자 권한 없이 설치하면 여기로 간다).
-  if [[ -d "/Applications/Cursor.app" ]] || [[ -d "${HOME}/Applications/Cursor.app" ]] \
-     || command -v cursor >/dev/null 2>&1; then
+  if cursor_present; then
     ok "Cursor 확인"
     return
   fi
-  fail "Cursor가 설치되어 있지 않습니다. ${CURSOR_DOWNLOAD_URL} 에서 설치한 뒤 이 스크립트를 다시 실행하세요."
+  fail "Cursor가 설치되어 있지 않습니다. ${CURSOR_DOWNLOAD_URL} 에서 $(os_label) 용을 설치한 뒤 이 스크립트를 다시 실행하세요."
 }
 
-hello_entry() {
-  echo "${REPO_DIR}/core/hello/dist/index.js"
+server_entry() {
+  echo "${REPO_DIR}/$1"
 }
 
 repo_commit() {
@@ -233,7 +296,7 @@ ensure_repo() {
   if [[ -d "${REPO_DIR}/.git" ]]; then
     info "기존 레포 발견: ${REPO_DIR} — git pull"
     if ! git -C "${REPO_DIR}" pull --ff-only; then
-      fail "git pull 에 실패했습니다. 네트워크를 확인하거나, 로컬 변경이 있다면 ~/.opencircuit 밖에서 작업 중인지 확인하세요."
+      fail "git pull 에 실패했습니다. 네트워크를 확인하거나, 로컬 변경이 있다면 ${HOME_OC} 밖에서 작업 중인지 확인하세요."
     fi
     ok "pull 완료 (커밋 $(repo_commit))"
     return
@@ -262,29 +325,41 @@ build_repo() {
     npm install --no-fund --no-audit
     npm run build
   ) || fail "빌드에 실패했습니다. 인터넷을 확인한 뒤 다시 실행하세요. (한 번 성공하면 이후 오프라인에서도 ping 이 됩니다.)"
-  [[ -f "$(hello_entry)" ]] || fail "빌드 후에도 진입 파일이 없습니다: $(hello_entry)"
+  local rel entry
+  for rel in "${SERVER_RELS[@]}"; do
+    entry="$(server_entry "$rel")"
+    [[ -f "$entry" ]] || fail "빌드 후에도 진입 파일이 없습니다: ${entry}"
+  done
   ok "빌드 완료 (커밋 $(repo_commit))"
 }
 
 merge_mcp() {
-  local node_path entry
+  local node_path i key rel entry
   node_path="$(command -v node)"
-  entry="$(hello_entry)"
   [[ -x "$node_path" ]] || fail "node 경로를 찾지 못했습니다."
-  info "등록: ${SERVER_KEY} → ${entry}"
-  node "$(merge_script)" "${MCP_JSON}" "${SERVER_KEY}" "${node_path}" "${entry}" \
-    || fail "mcp.json 병합에 실패했습니다."
+  for i in "${!SERVER_KEYS[@]}"; do
+    key="${SERVER_KEYS[$i]}"
+    rel="${SERVER_RELS[$i]}"
+    entry="$(server_entry "$rel")"
+    info "등록: ${key} → ${entry}"
+    node "$(merge_script)" "${MCP_JSON}" "${key}" "${node_path}" "${entry}" \
+      || fail "mcp.json 병합에 실패했습니다."
+  done
   ok "mcp.json 저장: ${MCP_JSON}"
 }
 
 invoke_verify() {
-  local node_path
+  local node_path i key rel
   node_path="$(command -v node)"
-  info "opencircuit-hello handshake 검증 중..."
-  if ! node "$(verify_script)" "${node_path}" "$(hello_entry)"; then
-    fail "검증에 실패했습니다."
-  fi
-  ok "검증 성공"
+  for i in "${!SERVER_KEYS[@]}"; do
+    key="${SERVER_KEYS[$i]}"
+    rel="${SERVER_RELS[$i]}"
+    info "${key} handshake 검증 중..."
+    if ! node "$(verify_script)" "${node_path}" "$(server_entry "$rel")"; then
+      fail "${key} 검증에 실패했습니다."
+    fi
+    ok "${key} 검증 성공"
+  done
 }
 
 show_doctor() {
@@ -311,9 +386,7 @@ show_doctor() {
   fi
   printf '%-12s %s\n' "git" "$git_status"
 
-  # ~/Applications 에 설치한 사용자도 인정한다 (관리자 권한 없이 설치하면 여기로 간다).
-  if [[ -d "/Applications/Cursor.app" ]] || [[ -d "${HOME}/Applications/Cursor.app" ]] \
-     || command -v cursor >/dev/null 2>&1; then
+  if cursor_present; then
     cursor_status="OK"
   else
     cursor_status="FAIL (${CURSOR_DOWNLOAD_URL})"
@@ -326,7 +399,9 @@ show_doctor() {
       try {
         const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
         const keys=Object.keys(j.mcpServers||{});
-        if(!keys.includes("opencircuit-hello")) { console.log("FAIL (opencircuit-hello 없음)"); process.exit(0); }
+        const need=["opencircuit-hello","opencircuit-apiframe"];
+        const missing=need.filter(k=>!keys.includes(k));
+        if(missing.length) { console.log("FAIL (없음: "+missing.join(", ")+")"); process.exit(0); }
         console.log("OK (키: "+keys.join(", ")+")");
       } catch { console.log("FAIL (파싱 오류)"); }
     ' "$MCP_JSON" 2>/dev/null || echo "FAIL (파싱 오류)")"
@@ -335,18 +410,27 @@ show_doctor() {
   fi
   printf '%-12s %s\n' "mcp.json" "$mcp_status"
 
-  ver_status="FAIL (서버 진입 파일 없음)"
-  if [[ -f "$(hello_entry)" && -n "$major" && "$major" -ge 20 ]]; then
-    local out
-    if out="$(node "$(verify_script)" "$(command -v node)" "$(hello_entry)" 2>&1)"; then
-      local c
-      c="$(printf '%s\n' "$out" | sed -n 's/^COMMIT=//p' | head -n1)"
-      ver_status="OK (commit=${c:-unknown})"
-    else
-      ver_status="FAIL (서버 무응답 — 부트스트랩 재실행)"
-    fi
+  local i key rel entry short
+  if [[ -z "$major" || "$major" -lt 20 ]]; then
+    printf '%-12s %s\n' "서버응답" "FAIL (Node 20+ 필요)"
+  else
+    for i in "${!SERVER_KEYS[@]}"; do
+      key="${SERVER_KEYS[$i]}"
+      rel="${SERVER_RELS[$i]}"
+      entry="$(server_entry "$rel")"
+      short="${key#opencircuit-}"
+      ver_status="FAIL (진입 파일 없음)"
+      if [[ -f "$entry" ]]; then
+        local out
+        if out="$(node "$(verify_script)" "$(command -v node)" "$entry" 2>&1)"; then
+          ver_status="OK"
+        else
+          ver_status="FAIL (무응답 — 부트스트랩 재실행)"
+        fi
+      fi
+      printf '%-12s %s\n' "서버 ${short}" "$ver_status"
+    done
   fi
-  printf '%-12s %s\n' "서버응답" "$ver_status"
 
   if [[ -n "$(repo_commit)" ]]; then
     commit_status="OK ($(repo_commit))"
@@ -360,7 +444,7 @@ show_doctor() {
 }
 
 echo ""
-echo "OpenCircuit 부트스트랩"
+echo "OpenCircuit 부트스트랩 ($(os_label))"
 if [[ "$DOCTOR" -eq 1 ]]; then
   show_doctor
   exit 0
@@ -374,7 +458,8 @@ build_repo
 merge_mcp
 invoke_verify
 
-ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 초록불을 확인하세요."
+ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 와 opencircuit-apiframe 초록불을 확인하세요."
+info "이미지 생성을 쓰려면 ${MCP_JSON} 의 opencircuit-apiframe env 에 APIFRAME_KEY 를 넣으세요."
 info "도구 위치: ${REPO_DIR} — 작품·작업 폴더는 여기에 두지 마세요."
 info "업데이트: ./install.sh --update"
 echo ""

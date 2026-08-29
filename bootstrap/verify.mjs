@@ -5,6 +5,10 @@
  * 성공 시 stdout에 COMMIT=<hash> 한 줄을 포함할 수 있다.
  */
 import { spawn } from "node:child_process";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const repoHint = join(homedir(), ".opencircuit", "repo");
 
 const nodeBin = process.argv[2];
 const entry = process.argv[3];
@@ -131,24 +135,42 @@ try {
 
   send(child, { jsonrpc: "2.0", method: "notifications/initialized" });
 
-  const ping = await request("tools/call", { name: "ping", arguments: {} });
-  if (ping.error) {
+  const listed = await request("tools/list", {});
+  if (listed.error) {
     fail(
-      `ping 실패: ${ping.error.message}. mcp.json 의 서버 경로와 ~/.opencircuit/repo 빌드를 확인하세요.`,
+      `tools/list 실패: ${listed.error.message}. mcp.json 의 서버 경로와 ${repoHint} 빌드를 확인하세요.`,
+    );
+  }
+  const toolNames = (listed.result?.tools ?? [])
+    .map((t) => t?.name)
+    .filter(Boolean);
+  if (toolNames.length === 0) {
+    fail(
+      "서버가 도구를 하나도 내놓지 않았습니다. 부트스트랩을 --update 로 다시 실행하세요.",
     );
   }
 
-  const text = (ping.result?.content ?? [])
-    .filter((c) => c.type === "text")
-    .map((c) => c.text)
-    .join("\n");
-
-  const commitMatch = text.match(/commit\s+([0-9a-f]+|unknown)/i);
-  const commit = commitMatch?.[1] ?? "unknown";
+  let commit = "n/a";
+  let extra = "";
+  if (toolNames.includes("ping")) {
+    const ping = await request("tools/call", { name: "ping", arguments: {} });
+    if (ping.error) {
+      fail(
+        `ping 실패: ${ping.error.message}. mcp.json 의 서버 경로와 ${repoHint} 빌드를 확인하세요.`,
+      );
+    }
+    extra = (ping.result?.content ?? [])
+      .filter((c) => c.type === "text")
+      .map((c) => c.text)
+      .join("\n");
+    const commitMatch = extra.match(/commit\s+([0-9a-f]+|unknown)/i);
+    commit = commitMatch?.[1] ?? "unknown";
+  }
 
   console.log("OK");
   console.log(`COMMIT=${commit}`);
-  console.log(text);
+  console.log(`TOOLS=${toolNames.join(",")}`);
+  if (extra) console.log(extra);
 
   settled = true;
   child.kill();
@@ -156,6 +178,6 @@ try {
 } catch (err) {
   const message = err instanceof Error ? err.message : String(err);
   fail(
-    `서버 검증에 실패했습니다: ${message}. Node와 ~/.opencircuit/repo/core/hello/dist 가 있는지 확인한 뒤 부트스트랩을 다시 실행하세요.`,
+    `서버 검증에 실패했습니다: ${message}. Node와 ${join(repoHint, "core", "hello", "dist")} 가 있는지 확인한 뒤 부트스트랩을 다시 실행하세요.`,
   );
 }

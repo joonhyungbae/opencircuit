@@ -4,8 +4,8 @@
   OpenCircuit 수강생용 부트스트랩 (Windows)
 
 .DESCRIPTION
-  Node/git/Cursor 확인 후 GitHub 레포를 ~/.opencircuit/repo 에 clone·빌드하고
-  전역 ~/.cursor/mcp.json 에 opencircuit-hello 를 등록합니다.
+  Node/git/Cursor 확인 후 GitHub 레포를 %USERPROFILE%\.opencircuit\repo 에 clone·빌드하고
+  전역 %USERPROFILE%\.cursor\mcp.json 에 opencircuit-hello · opencircuit-apiframe 를 등록합니다.
 
 .PARAMETER Doctor
   설치 없이 현재 상태만 진단합니다.
@@ -21,7 +21,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoUrl = "https://github.com/joonhyungbae/opencircuit.git"
-$ServerKey = "opencircuit-hello"
+$Servers = @(
+  @{ Key = "opencircuit-hello"; Rel = "core\hello\dist\index.js" },
+  @{ Key = "opencircuit-apiframe"; Rel = "tools\apiframe\server\dist\index.js" }
+)
 $CursorDownloadUrl = "https://cursor.com/download"
 $TarballUrl = "https://codeload.github.com/joonhyungbae/opencircuit/tar.gz/refs/heads/main"
 $CommitApiUrl = "https://api.github.com/repos/joonhyungbae/opencircuit/commits/main"
@@ -111,8 +114,9 @@ function Test-CursorPresent {
   return $false
 }
 
-function Get-HelloEntry {
-  Join-Path $RepoDir "core\hello\dist\index.js"
+function Get-ServerEntry {
+  param([string]$Rel)
+  Join-Path $RepoDir $Rel
 }
 
 function Get-RepoCommit {
@@ -273,7 +277,7 @@ function Ensure-Repo {
     try {
       & git pull --ff-only
       if ($LASTEXITCODE -ne 0) {
-        Write-Fail "git pull 에 실패했습니다. 네트워크를 확인하거나, 로컬 변경이 있다면 ~/.opencircuit 밖에서 작업 중인지 확인하세요."
+        Write-Fail "git pull 에 실패했습니다. 네트워크를 확인하거나, 로컬 변경이 있다면 $HomeOpenCircuit 밖에서 작업 중인지 확인하세요."
         exit 1
       }
     } finally {
@@ -323,10 +327,12 @@ function Build-Repo {
     Pop-Location
   }
 
-  $entry = Get-HelloEntry
-  if (-not (Test-Path $entry)) {
-    Write-Fail "빌드 후에도 진입 파일이 없습니다: $entry"
-    exit 1
+  foreach ($s in $Servers) {
+    $entry = Get-ServerEntry $s.Rel
+    if (-not (Test-Path $entry)) {
+      Write-Fail "빌드 후에도 진입 파일이 없습니다: $entry"
+      exit 1
+    }
   }
   Write-Ok "빌드 완료 (커밋 $(Get-RepoCommit))"
 }
@@ -370,17 +376,19 @@ function Merge-McpConfig {
     exit 1
   }
 
-  $entry = Get-HelloEntry
   $beforeKeys = @()
   if (Test-Path $McpJsonPath) {
     try { $beforeKeys = @((Read-McpJson).mcpServers.PSObject.Properties.Name) } catch { }
   }
 
-  Write-Info "등록: $ServerKey → $entry"
-  $r = Invoke-Native $nodePath @($merge, $McpJsonPath, $ServerKey, $nodePath, $entry)
-  if ($r.ExitCode -ne 0) {
-    Write-Fail "mcp.json 병합 실패:`n$($r.Output)"
-    exit 1
+  foreach ($s in $Servers) {
+    $entry = Get-ServerEntry $s.Rel
+    Write-Info "등록: $($s.Key) → $entry"
+    $r = Invoke-Native $nodePath @($merge, $McpJsonPath, $s.Key, $nodePath, $entry)
+    if ($r.ExitCode -ne 0) {
+      Write-Fail "mcp.json 병합 실패:`n$($r.Output)"
+      exit 1
+    }
   }
   Write-Ok "mcp.json 저장: $McpJsonPath"
   $afterKeys = @((Read-McpJson).mcpServers.PSObject.Properties.Name)
@@ -391,7 +399,6 @@ function Merge-McpConfig {
 
 function Invoke-Verify {
   $nodePath = Get-NodePath
-  $entry = Get-HelloEntry
   $verifyInRepo = Join-Path $RepoDir "bootstrap\verify.mjs"
   $verify = if (Test-Path $verifyInRepo) { $verifyInRepo } else { $VerifyScript }
 
@@ -399,21 +406,23 @@ function Invoke-Verify {
     Write-Fail "node를 찾을 수 없습니다."
     return $false
   }
-  if (-not (Test-Path $entry)) {
-    Write-Fail "서버 진입 파일이 없습니다: $entry . 부트스트랩을 다시 실행하세요."
-    return $false
-  }
 
-  Write-Info "opencircuit-hello handshake 검증 중..."
-  $r = Invoke-Native $nodePath @($verify, $nodePath, $entry)
-  $code = $r.ExitCode
-  $text = $r.Output.Trim()
-  if ($code -ne 0) {
-    Write-Fail "검증 실패:`n$text"
-    return $false
+  foreach ($s in $Servers) {
+    $entry = Get-ServerEntry $s.Rel
+    if (-not (Test-Path $entry)) {
+      Write-Fail "서버 진입 파일이 없습니다: $entry . 부트스트랩을 다시 실행하세요."
+      return $false
+    }
+    Write-Info "$($s.Key) handshake 검증 중..."
+    $r = Invoke-Native $nodePath @($verify, $nodePath, $entry)
+    $text = $r.Output.Trim()
+    if ($r.ExitCode -ne 0) {
+      Write-Fail "$($s.Key) 검증 실패:`n$text"
+      return $false
+    }
+    Write-Ok "$($s.Key) 검증 성공"
+    Write-Host $text
   }
-  Write-Ok "검증 성공"
-  Write-Host $text
   return $true
 }
 
@@ -440,16 +449,16 @@ function Show-Doctor {
   $rows += [pscustomobject]@{ Item = "Cursor"; Status = $cursorStatus }
 
   $mcpStatus = "FAIL (파일 없음)"
-  $prodPath = $null
   if (Test-Path $McpJsonPath) {
     try {
       $cfg = Read-McpJson
       $keys = @($cfg.mcpServers.PSObject.Properties.Name)
-      if ($keys -contains $ServerKey) {
-        $prodPath = [string]$cfg.mcpServers.$ServerKey.args[0]
-        $mcpStatus = "OK (키: $($keys -join ', '))"
+      $need = @($Servers | ForEach-Object { $_.Key })
+      $missing = @($need | Where-Object { $keys -notcontains $_ })
+      if ($missing.Count -gt 0) {
+        $mcpStatus = "FAIL (없음: $($missing -join ', '))"
       } else {
-        $mcpStatus = "FAIL (opencircuit-hello 없음 — 부트스트랩 실행)"
+        $mcpStatus = "OK (키: $($keys -join ', '))"
       }
     } catch {
       $mcpStatus = "FAIL (JSON 파싱 오류)"
@@ -457,24 +466,26 @@ function Show-Doctor {
   }
   $rows += [pscustomobject]@{ Item = "mcp.json"; Status = $mcpStatus }
 
-  $verStatus = "FAIL (서버 진입 파일 없음)"
-  $entry = $null
-  if ($prodPath -and (Test-Path $prodPath)) { $entry = $prodPath }
-  elseif (Test-Path (Get-HelloEntry)) { $entry = Get-HelloEntry }
-
-  if ($entry -and (Get-NodeMajor) -ge 20) {
-    $verifyInRepo = Join-Path $RepoDir "bootstrap\verify.mjs"
-    $verify = if (Test-Path $verifyInRepo) { $verifyInRepo } else { $VerifyScript }
-    $r = Invoke-Native (Get-NodePath) @($verify, (Get-NodePath), $entry)
-    $out = $r.Output
-    if ($r.ExitCode -eq 0) {
-      $c = if ($out -match "COMMIT=(\S+)") { $Matches[1] } else { "unknown" }
-      $verStatus = "OK (commit=$c)"
-    } else {
-      $verStatus = "FAIL (서버 무응답 — 부트스트랩 재실행)"
+  $verifyInRepo = Join-Path $RepoDir "bootstrap\verify.mjs"
+  $verify = if (Test-Path $verifyInRepo) { $verifyInRepo } else { $VerifyScript }
+  $nodePath = Get-NodePath
+  $major = Get-NodeMajor
+  foreach ($s in $Servers) {
+    $short = $s.Key -replace '^opencircuit-', ''
+    $verStatus = "FAIL (서버 진입 파일 없음)"
+    $entry = Get-ServerEntry $s.Rel
+    if ($entry -and (Test-Path $entry) -and $null -ne $major -and $major -ge 20 -and $nodePath) {
+      $r = Invoke-Native $nodePath @($verify, $nodePath, $entry)
+      if ($r.ExitCode -eq 0) {
+        $verStatus = "OK"
+      } else {
+        $verStatus = "FAIL (서버 무응답 — 부트스트랩 재실행)"
+      }
+    } elseif ($null -eq $major -or $major -lt 20) {
+      $verStatus = "FAIL (Node 20+ 필요)"
     }
+    $rows += [pscustomobject]@{ Item = "서버 $short"; Status = $verStatus }
   }
-  $rows += [pscustomobject]@{ Item = "Server"; Status = $verStatus }
 
   $commit = Get-RepoCommit
   $commitStatus = if ($commit) { "OK ($commit)" } else { "FAIL (repo 없음 — 부트스트랩 실행)" }
@@ -505,7 +516,8 @@ $ok = Invoke-Verify
 if (-not $ok) { exit 1 }
 
 Write-Host ""
-Write-Ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 초록불을 확인하세요."
+Write-Ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 와 opencircuit-apiframe 초록불을 확인하세요."
+Write-Info "이미지 생성을 쓰려면 $McpJsonPath 의 opencircuit-apiframe env 에 APIFRAME_KEY 를 넣으세요."
 Write-Info "도구 위치: $RepoDir — 작품·작업 폴더는 여기에 두지 마세요."
 Write-Info "업데이트: .\install.ps1 -Update"
 Write-Host ""

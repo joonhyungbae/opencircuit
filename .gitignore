@@ -6,3 +6,10 @@ _*.txt
 *.tgz
 .npmrc
 .claude/
+.env
+.env.*
+!.env.example
+web/.env
+web/.env.local
+**/.apiframe-key
+*.apiframe-key

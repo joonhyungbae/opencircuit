@@ -16,7 +16,7 @@
 
 ### Cursor MCP 설정은 전역만 쓴다
 
-- **경로**: Windows `%USERPROFILE%\.cursor\mcp.json`, macOS `~/.cursor/mcp.json`
+- **경로**: Windows `%USERPROFILE%\.cursor\mcp.json`, macOS·Linux `~/.cursor/mcp.json`
 - **프로젝트 스코프(`<workspace>/.cursor/mcp.json`)는 쓰지 않는다.**
 - **이유**: 수강생은 `opencircuit` 레포가 아니라 자기 작업 폴더에서 창작한다.
   도구가 폴더를 따라다녀야 하므로, 워크스페이스마다 설정을 두지 않고 전역에 한 번 등록한다.
@@ -83,8 +83,8 @@ Phase 4에서 `instructions/` 원본 → `.cursor/rules`, `CLAUDE.md`, `AGENTS.m
 
 하지 않는 것: Docker, 전역 `npm i -g`, npm publish를 배포 수단으로 쓰는 것,
 이 페이즈의 테스트 프레임워크, 프로젝트 스코프 mcp.json, 비밀키용 `.env` 파일,
-**관리자/`sudo`를 요구하는 설치 경로**(공식 `.pkg` 등). macOS는 Homebrew 또는
-`~/.opencircuit/node`에 Node 바이너리 타르볼을 풀어 쓴다.
+**관리자/`sudo`를 요구하는 설치 경로**(공식 `.pkg`·`apt` 등). macOS·Linux는 Homebrew가
+있으면 쓰고, 없으면 `~/.opencircuit/node`에 Node 바이너리 타르볼을 풀어 쓴다.
 `cmd /c`로 `npx`를 감싸는 Windows 분기도 쓰지 않는다.
 
 ### 배포: git clone (npm publish 아님)
@@ -103,7 +103,7 @@ npm org 확보·publish·마이너 버전 고정은 **하지 않는다**. 나중
 | 경로 | 용도 |
 |---|---|
 | `~/.opencircuit/repo` | git clone 작업트리 |
-| `~/.opencircuit/node` | macOS 등에서 관리자 없이 푼 Node 바이너리 (레포와 분리) |
+| `~/.opencircuit/node` | macOS·Linux에서 관리자 없이 푼 Node 바이너리 (레포와 분리) |
 
 clone 대상을 `~/.opencircuit` 루트로 두면 Node 타르볼이 작업트리를 오염시키므로 **반드시 `repo/` 하위에 clone**한다.
 
@@ -117,6 +117,18 @@ clone 대상을 `~/.opencircuit` 루트로 두면 Node 타르볼이 작업트리
 
 - `repo/`·(필요 시) `node/` 만 둔다.
 - 수강생 작품·스테이션·작업 폴더는 여기에 두지 않는다 (`git pull` 충돌 방지).
+
+### 작업 폴더 (OS별)
+
+기본 루트는 문서 폴더의 `OpenCircuit/`. 수강생에게는 `~` 축약 대신 **그 컴퓨터의 절대경로**를 보여 준다.
+
+| OS | 문서 폴더 | MCP 설정 |
+|---|---|---|
+| Windows | `%USERPROFILE%\Documents` 또는 한국어 `%USERPROFILE%\문서` | `%USERPROFILE%\.cursor\mcp.json` |
+| macOS | `~/Documents` | `~/.cursor/mcp.json` |
+| Linux | XDG `XDG_DOCUMENTS_DIR`, 없으면 `~/Documents` | `~/.cursor/mcp.json` |
+
+`work_path`는 `~`와 `%USERPROFILE%`를 푼다. `~/.opencircuit` 거부는 Windows에서 대소문자를 무시한다.
 - 이 규칙을 bootstrap README에 한국어로 명시한다.
 
 ### 업데이트
@@ -139,7 +151,7 @@ cd ~/.opencircuit/repo && git pull && npm install && npm run build
 Phase 1부터 서버 항목에 `env` 자리를 잡아, Phase 3(`APIFRAME_KEY` 등)에서
 스키마를 다시 쓰지 않는다.
 
-예시 (Windows·macOS 동일 스키마, 경로 구분자만 다름):
+예시 (Windows·macOS·Linux 동일 스키마, 경로 구분자만 다름):
 
 ```json
 {
@@ -154,13 +166,14 @@ Phase 1부터 서버 항목에 `env` 자리를 잡아, Phase 3(`APIFRAME_KEY` �
 ```
 
 macOS 예: `"args": ["/Users/…/.opencircuit/repo/core/hello/dist/index.js"]`.
-`command`는 양쪽 모두 `node` (필요하면 `node`의 절대경로). `cmd /c` 래핑 없음.
+Linux 예: `"args": ["/home/…/.opencircuit/repo/core/hello/dist/index.js"]`.
+`command`는 모두 `node` (필요하면 `node`의 절대경로). `cmd /c` 래핑 없음.
 
 ### 이름 규칙 — 축은 소프트웨어다
 
 이 저장소는 이번 프로그램용 도구 모음에 그치지 않고, **아트앤테크 작업에 필요한 도구를
-계속 갱신·공유하는 오픈 저장소**를 지향한다. 그래서 조직 축을 회차나 역할이 아니라
-**소프트웨어**로 잡는다. 회차는 바뀌고 역할은 모호해지지만 도구 이름은 남는다.
+계속 갱신·공유하는 오픈 저장소**를 지향한다. 수업 일정은 이 저장소의 축이 아니다.
+조직 축은 역할이 아니라 **소프트웨어**다.
 
 | 대상 | 규칙 | 예 |
 |---|---|---|
@@ -195,7 +208,7 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
     README.md                  # 폴더 규약
   bootstrap/
     install.ps1                # Windows
-    install.sh                 # macOS
+    install.sh                 # macOS · Linux
     README.md                  # 수강생용 한국어 안내
   docs/
     architecture.md            # 본 문서
@@ -207,7 +220,7 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 ~/.opencircuit/
   repo/                        # git clone
     core/hello/dist/index.js
-  node/                        # (선택) macOS 홈 Node
+  node/                        # (선택) macOS·Linux 홈 Node
 ```
 
 ### `core/hello`
@@ -221,8 +234,10 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 1. OS 판별 — 관리자 권한 없는 경로만 사용
 2. Node 20+ 확인 → 없으면 설치
    - Windows: `winget install OpenJS.NodeJS.LTS` (사용자 스코프 가능 시 우선)
-   - macOS: Homebrew 있으면 `brew install node`. 없으면 공식 바이너리 tarball을
+   - macOS: Homebrew 있으면 `brew install node`. 없으면 공식 `darwin` tarball을
      **`~/.opencircuit/node`**에 풀어 PATH에 추가 (관리자 암호 불필요). `.pkg`/sudo는 쓰지 않는다.
+   - Linux: `apt`/`sudo`는 쓰지 않는다. Homebrew(linuxbrew)가 있으면 쓰고, 없으면 공식
+     `linux` tarball을 **`~/.opencircuit/node`**에 푼다. PATH는 `.bashrc` 또는 `.zshrc`에 남긴다.
 3. git 확인 → 없으면 설치(관리자 없이 가능한 경로 우선)
 4. Cursor 확인 → 없으면 다운로드 URL 안내 후 **중단**
 5. `https://github.com/joonhyungbae/opencircuit` → **`~/.opencircuit/repo`**
@@ -243,6 +258,8 @@ opencircuit/                   # GitHub: joonhyungbae/opencircuit (public 필요
 
 - [ ] Node/git이 없는 깨끗한 Windows에서 `install.ps1` → Cursor 재시작 →
       `opencircuit-hello` 초록불, `ping` 성공
+- [ ] 깨끗한 macOS에서 `install.sh` → Cursor 재시작 → `ping` 성공
+- [ ] 깨끗한 Linux에서 `install.sh` → Cursor 재시작 → `ping` 성공 (`sudo`/`apt` 없이)
 - [ ] **비행기 모드에서 Cursor를 재시작해도 `ping`이 성공한다** (핵심)
 - [ ] 두 번 실행해도 깨지지 않는다 (멱등). `~/.opencircuit/repo`가 이미 있으면 clone 대신 pull
 - [ ] 기존 전역 mcp.json의 다른 서버 항목이 보존된다

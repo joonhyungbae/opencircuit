@@ -14,6 +14,14 @@ by their original licenses; the repository [LICENSE](LICENSE) does not alter the
 | 경로 | 출처 | 원저작자 | 라이선스 | 수정 여부 |
 |---|---|---|---|---|
 | `tools/p5js/baseline/lib/p5.min.js` | https://p5js.org | Processing Foundation · p5.js Contributors | **LGPL-2.1** | 수정 없음 |
+| `tools/threejs/baseline/lib/three.module.js` | https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js | mrdoob · three.js authors | **MIT** | 수정 없음 |
+| `tools/threejs/baseline/lib/three.core.js` | https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.core.js | mrdoob · three.js authors | **MIT** | 수정 없음 |
+| `tools/threejs/baseline/lib/OrbitControls.js` | https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/controls/OrbitControls.js | mrdoob · three.js authors | **MIT** | 수정 없음 |
+| `tools/transformersjs/baseline/lib/transformers.min.js` | https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0/dist/transformers.web.js | Hugging Face | **Apache-2.0** | 수정 없음 (브라우저 ESM 엔트리를 이 이름으로 둠) |
+| `tools/transformersjs/baseline/lib/ort.webgpu.bundle.min.mjs` | https://cdn.jsdelivr.net/npm/onnxruntime-web@1.26.0-dev.20260416-b7804b056c/dist/ort.webgpu.bundle.min.mjs | Microsoft | **MIT** | 수정 없음 |
+| `tools/transformersjs/baseline/lib/onnxruntime-common.js` | (재export) `ort.webgpu.bundle.min.mjs` 의 Tensor | — | MIT 원본을 따름 | 우리가 쓴 한 줄 재export |
+| `web/public/jeeliz/` | https://github.com/jeeliz/jeelizFaceFilter @ `6f269512` | Jeeliz / WebAR.rocks · three.js authors · tween.js authors | **Apache-2.0** (three.js·tween.js 는 **MIT**) | 데모 HTML/`main.js`·미사용 고해상도·41MB 애니메이션 메시는 제외. 목록은 `web/public/jeeliz/NOTICE.txt` |
+| `web/public/mediapipe/hand_landmarker.task` | https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task | Google MediaPipe | **Apache-2.0** | 수정 없음 |
 
 ### p5.js 확인 결과 (2026-08-01, https://p5js.org/copyright/ 기준)
 
@@ -42,6 +50,24 @@ p5.js는 구성요소마다 라이선스가 다르다. 이걸 구분하지 않�
   (LGPL 이 요구하는 relink 가능성을 이 형태가 충족한다)
 - 우리가 작성한 `sketch.js` 등에는 이 저장소의 LICENSE 가 적용된다.
   LGPL 은 라이브러리에만 적용되고 이를 사용하는 저작물로 전이되지 않는다
+
+### three.js (2026-08-28)
+
+- 버전 **0.185.1**, MIT. 라이선스 원문 `tools/threejs/baseline/lib/license.txt`
+- 공식 예제 페이지 코드는 가져오지 않았다. API 설명만 참고해 베이스라인을 직접 작성했다.
+
+### transformers.js (2026-08-28)
+
+- 버전 **4.2.0**, Apache-2.0. 라이선스 원문 `tools/transformersjs/baseline/lib/license.txt`
+- **SmolVLM-256M-Instruct 가중치는 벤더링하지 않는다.** 실행 시 Hugging Face에서 내려받는다.
+  출처: https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct · Apache-2.0
+
+### Jeeliz FaceFilter (2026-08-28)
+
+- Apache-2.0. 라이선스 원문 `web/public/jeeliz/LICENSE`
+- 커밋 `6f2695120b992511fd6cb1fd80c600bb957cd08c`
+- 공식 3D 메시(강아지·안경·호랑이·늑대)와 추적 라이브러리·three r97·tween.js 를 포함했다.
+- 데모 HTML/`main.js` 는 가져오지 않았다. 스튜디오 호스트는 `web/src/lib/filters.ts` 이다.
 
 ### 기록 규칙
 
@@ -87,6 +113,8 @@ p5.js는 구성요소마다 라이선스가 다르다. 이걸 구분하지 않�
 | 대상 | 출처 | 비고 |
 |---|---|---|
 | Node.js | https://nodejs.org | macOS 에서 Homebrew 가 없을 때 공식 바이너리 사용 |
+| SmolVLM-256M-Instruct 가중치 | https://huggingface.co/HuggingFaceTB/SmolVLM-256M-Instruct | 브라우저 실행 시 오리진별로 내려받음. Apache-2.0. 저장소에 포함하지 않음 |
+| `web/` React 의존성 | npm (`react`, `three` 등) | `start.sh` / `start.ps1` 이 `web/node_modules` 에 설치. 목록은 [web/NOTICE.md](web/NOTICE.md) |
 
 ---
 

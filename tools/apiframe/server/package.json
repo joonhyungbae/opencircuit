@@ -1,0 +1,29 @@
+{
+  "name": "@opencircuit/mcp-apiframe",
+  "version": "0.1.0",
+  "description": "OpenCircuit APIFrame MCP 서버 — 이미지·영상·음악 생성",
+  "type": "module",
+  "bin": {
+    "mcp-apiframe": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.0"
+  },
+  "license": "SEE LICENSE IN ../../../LICENSE"
+}

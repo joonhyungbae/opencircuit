@@ -1,0 +1,30 @@
+{
+  "name": "@opencircuit/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenCircuit 실습 웹 (React)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@types/three": "0.185.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.5"
+  }
+}
