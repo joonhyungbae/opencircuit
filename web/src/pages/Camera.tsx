@@ -880,6 +880,21 @@ function MakeBar({
             </button>
           ) : null}
           {keyMsg ? <span className="key-err">{keyMsg}</span> : null}
+          {/*
+            키를 "어디서" 가져오는지가 실제로 가장 많이 막히는 자리다(1회차 설문에서 최다).
+            칸만 있고 출처가 없으면 붙여 넣을 것이 없어 멈춘다. 그래서 링크를 칸에 붙여 둔다.
+          */}
+          <p className="key-where">
+            키는{" "}
+            <a href="https://apiframe.ai" target="_blank" rel="noreferrer">
+              apiframe.ai
+            </a>{" "}
+            에 로그인해 대시보드의 <strong>API Key</strong> 에서 복사합니다. <code>afk_</code> 로
+            시작하는 긴 글자입니다. 한 번 저장하면 다음부터는 안 물어봅니다.{" "}
+            <a href="https://opencircuit.club/wiki/tools/apiframe" target="_blank" rel="noreferrer">
+              자세히
+            </a>
+          </p>
         </div>
       ) : (
         <p className="key-mini">

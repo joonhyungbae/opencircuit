@@ -333,6 +333,15 @@ select { min-height: 38px; }
 .key-strip strong { font-size: 0.86rem; }
 .key-strip input { flex: 1; min-width: 180px; }
 .key-err { color: var(--err); font-size: 0.84rem; }
+/* 키를 어디서 가져오는지. 줄을 통째로 차지해 입력칸 아래로 내려간다. */
+.key-where {
+  flex: 1 0 100%;
+  margin: 2px 0 0;
+  color: var(--faint);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.key-where code { font-size: 0.95em; }
 
 .key-mini {
   flex: 0 0 auto;

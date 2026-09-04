@@ -78,6 +78,16 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 
 브라우저가 `http://127.0.0.1:1234` 을 엽니다. 자세한 내용 → [web/README.md](web/README.md)
 
+### 다음에 다시 열 때
+
+새로 설치하지 않습니다. 이 폴더를 찾아서 여는 것뿐입니다.
+
+1. Cursor를 열고 **File → Open Recent**(파일 → 최근 항목 열기)에서 `opencircuit` 이 들어간 폴더를 고릅니다.
+2. <kbd>Ctrl/⌘</kbd>+<kbd>`</kbd> 로 터미널을 열고 위의 `start` 명령을 다시 실행합니다.
+
+그만할 때는 그 터미널에서 <kbd>Ctrl</kbd>+<kbd>C</kbd> 입니다.
+폴더가 어디 있는지 모르겠거나 잘 안 되면 → [다시 열기](https://opencircuit.club/wiki/start/reopen)
+
 ---
 
 ## 명령
