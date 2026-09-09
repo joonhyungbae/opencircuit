@@ -112,7 +112,8 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 | `github` | 레포 생성·Pages 배포 (예정) |
 | `p5js` | 웹 그래픽 베이스라인 (예정) |
 
-> 지금 쓸 수 있는 것: `hello`, `apiframe`, 전시장(`tools/threejs/baseline`), 웹캠 문장(`tools/transformersjs/baseline`).
+> 지금 쓸 수 있는 것: `hello`, `apiframe`, 전시장(`tools/threejs/baseline`), 웹캠 문장(`tools/transformersjs/baseline`),
+> Processing 스케치(`tools/processing/baseline`).
 
 ---
 
