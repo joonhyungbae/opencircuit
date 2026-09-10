@@ -38,6 +38,7 @@ MCP 서버 키도 같은 이름을 씁니다: `opencircuit-<소프트웨어>`
 |---|---|---|---|
 | `apiframe` | 있음 | — | 이미지·영상·음악 생성 |
 | `processing` | — | 있음 | 3회차 실습 5단계와 OpenCV·Optical Flow 스케치 |
+| `react` | — | 있음 | Closed Circuit 스터디 슬라이드 (`deck.json`) |
 | `threejs` | — | 있음 | 전시장 (manifest.json 을 벽에 검) |
 | `transformersjs` | — | 있음 | 웹캠 → 문장 (모델은 실행 시 다운로드) |
 | `p5js` | — | 예정 | 웹 그래픽·사운드 베이스라인 |

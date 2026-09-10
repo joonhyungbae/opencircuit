@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+  --color-ink: var(--ink);
+  --color-blue: var(--blue);
+}
+
+@utility display-ko {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+  word-break: keep-all;
+}
+
+@utility mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+:root {
+  --background: #f2efe8;
+  --foreground: #302f2c;
+  --ink: #302f2c;
+  --surface: #faf8f2;
+  --hairline: rgba(48, 47, 44, 0.24);
+  --blue: #0969da;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.slide-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.slide-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+.slide {
+  flex: none;
+  transform-origin: center center;
+  overflow: hidden;
+  cursor: auto;
+  padding: 2rem 3rem;
+}
+
+.slide-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.slide-btn {
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-hairline);
+  background: transparent;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.slide-btn:hover {
+  background: var(--color-ink);
+  color: var(--color-background);
+}
+
+.slide-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-blue);
+  transition: width 0.2s;
+}

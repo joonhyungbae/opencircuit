@@ -100,9 +100,10 @@ One server per piece of software. This repository does not accumulate class sess
 | `hello` | Install & connection check |
 | `apiframe` | Image, video, and music generation |
 | `github` | Create a repo and publish to Pages (planned) |
+| `react` | Closed Circuit study slides |
 | `p5js` | Web graphics baseline (planned) |
 
-> Available now: `hello`, `apiframe`, the gallery (`tools/threejs/baseline`), and webcam captions (`tools/transformersjs/baseline`).
+> Available now: `hello`, `apiframe`, the gallery (`tools/threejs/baseline`), webcam captions (`tools/transformersjs/baseline`), Processing sketches (`tools/processing/baseline`), and study slides (`tools/react/baseline`).
 
 ---
 
