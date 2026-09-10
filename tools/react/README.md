@@ -4,6 +4,7 @@ Closed Circuit Busan 발표를 만드는 시작점입니다.
 `src/deck.json` 만 고치면 슬라이드가 바뀝니다. 코드는 건드리지 않아도 됩니다.
 
 사이트에 올라간 1회차 예 → [opencircuit.club/study/cutting-kim](https://opencircuit.club/study/cutting-kim)
+(1회차는 여덟 질문으로 했습니다. 이 템플릿은 그것을 열한 칸으로 늘린 것입니다.)
 
 ## 쓰는 법
 
@@ -65,12 +66,26 @@ npm run dev
 
 `deck.json` 의 `blocks` 에 넣는 종류입니다. 예는 템플릿 덱에 있습니다.
 
-`lead` · `big` · `bullets` · `cards` · `steps` · `table` · `qa` · `note` · `figure` · `youtube` · `row`
+| kind | 무엇 | 옵션 |
+|---|---|---|
+| `lead` | 테두리 친 한 문단 | `text` |
+| `big` | 큰 글자 한 줄 | `text`, `sub` |
+| `bullets` | 점 목록 | `items` |
+| `cards` | 제목 있는 카드 | `items[{title, lines 또는 text}]`, `cols` 1·2·3 (기본 2) |
+| `steps` | 단계 카드 | `items[{no, label, desc, color}]`, `stack: true` 면 세로로 쌓음(시간표) |
+| `table` | 표 | `head`, `rows` |
+| `qa` | 질문·답 | `items[{q, a}]` |
+| `note` | 옅은 배경 메모 | `text`, `tone: "warn"` 이면 노란 배경 |
+| `figure` | 그림 한 장 | `src`, `caption`, `size: "lg"` 면 칸을 가득 채움 |
+| `youtube` | 유튜브 | `src`(watch·youtu.be·shorts 주소), `caption` |
+| `row` | 왼쪽·오른쪽 나눔 | `left`, `right` 에 블록 배열 |
 
+글 안에서 `**굵게**` 와 주소 자동 링크가 됩니다.
 표지는 `cover` 입니다. 섹션 색은 `"212 80% 45%"` 처럼 HSL 세 숫자만 적습니다.
 
 ## 안 될 때
 
 - **포트가 이미 쓰인다.** `npm run dev -- --port 5174` 로 다른 문을 엽니다.
 - **그림이 안 보인다.** 파일이 `public/` 안에 있는지, 주소가 `/` 로 시작하는지 봅니다.
+- **글꼴이 다르게 보인다.** Pretendard 와 JetBrains Mono 는 인터넷에서 받아 옵니다. 발표 장소에 인터넷이 없으면 시스템 글꼴로 바뀌어 줄 바꿈이 달라질 수 있으니, 미리 한 번 열어 보세요.
 - **JSON 오류.** 쉼표가 빠졌거나 따옴표가 짝이 안 맞습니다. Cursor 에 `deck.json` 을 열고 물어보세요.

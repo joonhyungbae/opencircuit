@@ -17,7 +17,10 @@ export function SlideDeck({ deck }: { deck: Deck }) {
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    setI(hashIndex(flat.length));
+    const sync = () => setI(hashIndex(flat.length));
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
   }, [flat.length]);
 
   const go = useCallback(
