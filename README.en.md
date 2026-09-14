@@ -88,6 +88,7 @@ The browser opens `http://127.0.0.1:1234`. Details → [web/README.md](web/READM
 | `--doctor` | Diagnose what's broken. **Try this first when something fails** |
 | `--update` | Update the tools to the latest version |
 | `start.ps1` / `start.sh` | Start the studio web |
+| `web.ps1` / `web.sh` | Start the study presentation slides |
 
 ---
 
@@ -121,6 +122,8 @@ opencircuit/
 ├── web/                # Studio web (React, light theme)
 ├── start.ps1           # Launch the studio web (Windows)
 ├── start.sh            # Launch the studio web (macOS / Linux)
+├── web.ps1             # Launch the study slides (Windows)
+├── web.sh              # Launch the study slides (macOS / Linux)
 ├── bootstrap/          # Install scripts
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS / Linux

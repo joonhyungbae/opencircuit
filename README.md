@@ -98,6 +98,9 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 | `--doctor` | 어디가 문제인지 진단합니다. **안 될 때 가장 먼저 쓰세요** |
 | `--update` | 도구를 최신 버전으로 갱신합니다 |
 | `start.ps1` / `start.sh` | 실습 웹을 띄웁니다 |
+| `web.ps1` / `web.sh` | 스터디 발표 슬라이드를 띄웁니다 |
+
+부트스트랩은 아트페이퍼 코퍼스 MCP(`tekneh`)도 함께 등록합니다. 선택 사항이라 설치에 실패해도 나머지는 그대로 동작합니다.
 
 ---
 
@@ -132,6 +135,8 @@ opencircuit/
 ├── web/                # 실습 웹 (React, 라이트 테마)
 ├── start.ps1           # 실습 웹 실행 (Windows)
 ├── start.sh            # 실습 웹 실행 (macOS · Linux)
+├── web.ps1             # 스터디 슬라이드 실행 (Windows)
+├── web.sh              # 스터디 슬라이드 실행 (macOS · Linux)
 ├── bootstrap/          # 설치 스크립트
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS · Linux
