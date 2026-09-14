@@ -127,16 +127,20 @@ The `10.1145/...` in the ACM Digital Library URL is the DOI.
 **Download the PDF yourself in a browser** — the ACM DL blocks scripted access, so asking
 an agent to fetch it will fail.
 
-**2. Make your talk folder.** Under your documents folder, create
-`OpenCircuit/<work-name>-study/` and copy two things into it:
+**2. Make your talk folder.** One command — do not copy folders by hand.
 
-| What | From |
-|---|---|
-| the contents of `baseline/` | `~/.opencircuit/repo/tools/react/baseline/` |
-| `04-study-slides.md` | `~/.opencircuit/repo/prompts/` |
+```bash
+cd ~/.opencircuit/repo && ./web.sh --new work-name      # macOS / Linux
+```
+```powershell
+cd $env:USERPROFILE\.opencircuit\repo; .\web.ps1 -New work-name   # Windows
+```
 
-Put the downloaded PDF there too. The copied folder carries its own `README.md` with the
-eleven block types and the `source` table, so you never need to reopen the repository.
+You get `OpenCircuit/work-name-study/` in your documents folder, with the template and the
+procedure inside and `npm install` already done — nothing to wait for before your talk.
+Put the downloaded PDF there too. The folder carries its own `README.md` with the eleven
+block types and the `source` table, so you never need to reopen the repository.
+Use `--dir` (`-Dir`) to name the documents folder yourself. An existing folder is never overwritten.
 
 **3. Open that folder in Cursor** — File → Open Folder. Your talk folder, not the repository.
 
@@ -200,6 +204,7 @@ It binds to the tailnet address only, so others on the same router cannot see it
 | `--update` | Update the tools to the latest version |
 | `start.ps1` / `start.sh` | Start the studio web |
 | `web.ps1` / `web.sh` | Start the study presentation slides |
+| `--new <work-name>` | Create your talk folder under your documents folder |
 
 **Forking this repository** to modify it or send a PR → [keeping a fork in sync](docs/fork-and-sync.md) (Korean).
 If you only want to build a talk, you do not need a fork — copy `baseline` instead.

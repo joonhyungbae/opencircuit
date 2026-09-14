@@ -10,6 +10,8 @@ NO_OPEN=0
 DOCTOR=0
 TAILSCALE=0
 LOCAL_ONLY=0
+NEW_NAME=""
+DOCS_DIR=""
 BIND="127.0.0.1"
 
 while [[ $# -gt 0 ]]; do
@@ -18,12 +20,24 @@ while [[ $# -gt 0 ]]; do
     --doctor) DOCTOR=1 ;;
     --tailscale) TAILSCALE=1; NO_OPEN=1 ;;
     --local) LOCAL_ONLY=1 ;;
+    --new)
+      [[ $# -ge 2 && -n "$2" ]] \
+        || { echo "[실패] --new 뒤에 작품 이름을 적어 주세요. 예) ./web.sh --new 작품이름" >&2; exit 1; }
+      NEW_NAME="$2"; shift ;;
+    --dir)
+      [[ $# -ge 2 && -n "$2" ]] \
+        || { echo "[실패] --dir 뒤에 폴더를 적어 주세요. 예) --dir ~/Documents" >&2; exit 1; }
+      DOCS_DIR="$2"; shift ;;
     -h|--help)
-      echo "사용법: ./web.sh [덱_폴더] [--tailscale] [--no-open] [--doctor]"
+      echo "사용법: ./web.sh [덱_폴더] [옵션]"
+      echo "       ./web.sh --new <작품이름>"
+      echo ""
       echo "스터디 발표 슬라이드를 띄웁니다."
       echo "덱_폴더를 안 적으면 tools/react/baseline 을 띄웁니다."
-      echo "내 발표를 띄우려면 복사해 둔 폴더를 적습니다. 예) ./web.sh ~/Documents/OpenCircuit/작품이름-study"
+      echo "내 발표를 띄우려면 만들어 둔 폴더를 적습니다. 예) ./web.sh ~/Documents/OpenCircuit/작품이름-study"
       echo ""
+      echo "  --new <이름> 문서 폴더에 내 발표 폴더를 만듭니다. 처음 한 번 여기서 시작하세요."
+      echo "  --dir <경로> --new 가 쓸 문서 폴더를 직접 정합니다."
       echo "  --tailscale  이 컴퓨터의 Tailscale 주소로 엽니다."
       echo "               SSH 로 붙어 화면이 없으면 이 모드가 저절로 켜집니다."
       echo "  --local      저절로 켜지는 것을 막고 127.0.0.1 에만 엽니다."
@@ -165,6 +179,95 @@ case "$(uname -s)" in
     fail "지원하지 않는 운영체제입니다. Windows 는 web.ps1, macOS·Linux 는 web.sh 입니다."
     ;;
 esac
+
+# 문서 폴더를 찾는다. 수강생마다 이름이 다르다 — Documents · 문서 · XDG 설정.
+find_docs_dir() {
+  local d="" c
+  if command -v xdg-user-dir >/dev/null 2>&1; then
+    d="$(xdg-user-dir DOCUMENTS 2>/dev/null || true)"
+    if [[ -n "$d" && -d "$d" && "$d" != "$HOME" ]]; then
+      echo "$d"
+      return
+    fi
+  fi
+  for c in "${HOME}/Documents" "${HOME}/문서"; do
+    if [[ -d "$c" ]]; then
+      echo "$c"
+      return
+    fi
+  done
+  echo ""
+}
+
+# 내 발표 폴더를 만든다. 수강생이 숨김 폴더(~/.opencircuit)를 뒤지지 않게 하는 것이 요점이다.
+make_study_folder() {
+  local name="$1" docs target base e
+  case "$name" in
+    ""|-*) fail "작품 이름을 적어 주세요. 예) ./web.sh --new 작품이름" ;;
+    */*) fail "작품 이름에 / 는 쓸 수 없습니다: ${name}" ;;
+  esac
+
+  docs="$DOCS_DIR"
+  if [[ -z "$docs" ]]; then
+    docs="$(find_docs_dir)"
+  fi
+  [[ -n "$docs" ]] \
+    || fail "문서 폴더를 찾지 못했습니다. --dir 로 직접 정해 주세요. 예) ./web.sh --new ${name} --dir ~/Documents"
+  [[ -d "$docs" ]] || fail "그런 폴더가 없습니다: ${docs}"
+
+  base="${ROOT}/tools/react/baseline"
+  [[ -f "${base}/package.json" ]] || fail "템플릿을 찾지 못했습니다: ${base}"
+
+  target="${docs}/OpenCircuit/${name}-study"
+  if [[ -e "$target" ]]; then
+    fail "이미 있습니다: ${target}
+지우거나 다른 이름을 쓰세요. 덮어쓰지 않습니다."
+  fi
+
+  info "만드는 곳: ${target}"
+  mkdir -p "$target"
+  # node_modules 와 dist 는 빼고 옮긴다 — 무겁고, npm install 이 다시 만든다.
+  (
+    cd "$base"
+    for e in * .[!.]*; do
+      [[ -e "$e" ]] || continue
+      case "$e" in node_modules|dist) continue ;; esac
+      cp -R "$e" "${target}/"
+    done
+  )
+  # 절차서를 같이 둔다. 그래야 Cursor 채팅에서 @04-study-slides.md 로 부를 수 있다.
+  if [[ -f "${ROOT}/prompts/04-study-slides.md" ]]; then
+    cp "${ROOT}/prompts/04-study-slides.md" "${target}/"
+  else
+    warn "절차서를 찾지 못했습니다: ${ROOT}/prompts/04-study-slides.md"
+  fi
+  ok "폴더를 만들었습니다."
+
+  info "의존성을 설치합니다. 처음 한 번, 몇 분 걸립니다."
+  if (cd "$target" && npm install --no-fund --no-audit >/dev/null 2>&1); then
+    ok "설치 완료. 발표 직전에 기다릴 일이 없습니다."
+  else
+    warn "npm install 에 실패했습니다. 인터넷을 확인한 뒤 그 폴더에서 'npm install' 을 실행하세요."
+  fi
+
+  echo ""
+  ok "준비됐습니다: ${target}"
+  echo ""
+  echo "  1. Cursor 에서 File → Open Folder 로 위 폴더를 엽니다."
+  echo "  2. 채팅(에이전트 모드)에 이렇게 씁니다:"
+  echo ""
+  echo "       @04-study-slides.md"
+  echo "       논문 DOI: 10.1145/..."
+  echo "       이 논문으로 src/deck.json 을 채워 주세요."
+  echo ""
+  echo "  3. 확인:  ./web.sh \"${target}\""
+  echo ""
+}
+
+if [[ -n "$NEW_NAME" ]]; then
+  make_study_folder "$NEW_NAME"
+  exit 0
+fi
 
 if [[ "$DOCTOR" -eq 1 ]]; then
   show_browser_doctor

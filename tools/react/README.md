@@ -51,9 +51,16 @@ Closed Circuit Busan 발표를 만드는 시작점입니다.
 
 ## 쓰는 법
 
-1. 이 `baseline` 폴더를 문서 폴더의 `OpenCircuit/<작품이름>-study/` 에 복사합니다.
-   (Windows `문서` 또는 `Documents`, macOS `~/Documents`, Linux 는 XDG 문서 폴더)
-2. 그 폴더에서 아래를 실행합니다.
+1. 저장소 루트에서 내 발표 폴더를 만듭니다. 손으로 복사하지 않습니다.
+
+   ```bash
+   ./web.sh --new 작품이름          # macOS · Linux
+   .\web.ps1 -New 작품이름          # Windows
+   ```
+
+   문서 폴더에 `OpenCircuit/작품이름-study/` 가 생기고, 절차서와 `npm install` 까지 딸려 옵니다.
+
+2. 직접 하려면 이 `baseline` 폴더를 그 자리에 복사한 뒤 아래를 실행합니다.
 
 **Windows** — PowerShell:
 

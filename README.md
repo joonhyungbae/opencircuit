@@ -142,20 +142,32 @@ PDF 는 **브라우저에서 직접 내려받습니다.** ACM DL 은 프로그�
 
 #### 2. 내 발표 폴더를 만듭니다
 
-문서 폴더 아래 `OpenCircuit/<작품이름>-study/` 에 두 가지를 복사합니다.
+명령 하나면 됩니다. 폴더를 손으로 복사하지 마세요.
 
-| 무엇 | 어디에서 |
-|---|---|
-| `baseline` 폴더 안의 내용 | `~/.opencircuit/repo/tools/react/baseline/` |
-| `04-study-slides.md` | `~/.opencircuit/repo/prompts/` |
+**Windows** — PowerShell:
 
-절차서를 같이 복사해 두면 Cursor 채팅에서 `@04-study-slides.md` 로 부를 수 있습니다.
-내려받은 논문 PDF 도 이 폴더에 같이 둡니다.
+```powershell
+cd $env:USERPROFILE\.opencircuit\repo
+.\web.ps1 -New 작품이름
+```
 
-복사한 폴더 안의 `README.md` 에 블록 열한 가지와 `source` 표가 들어 있습니다.
-그 폴더만으로 발표가 완결되므로, 저장소를 다시 열 일은 없습니다.
+**macOS · Linux**:
 
-(Windows 는 `%USERPROFILE%\.opencircuit\repo\...`, 문서 폴더는 `문서` 또는 `Documents`)
+```bash
+cd ~/.opencircuit/repo
+./web.sh --new 작품이름
+```
+
+문서 폴더에 `OpenCircuit/작품이름-study/` 가 생깁니다. 그 안에 템플릿과 절차서가 함께 들어가고,
+`npm install` 까지 미리 돌려 둡니다 — 발표 직전에 기다릴 일이 없습니다.
+
+만들어진 폴더 안의 `README.md` 에 블록 열한 가지와 `source` 표가 들어 있습니다.
+**그 폴더만으로 발표가 완결되므로, 저장소를 다시 열 일은 없습니다.**
+
+내려받은 논문 PDF 를 그 폴더에 같이 두세요.
+
+> 문서 폴더를 못 찾으면 `--dir ~/Documents` (PowerShell 은 `-Dir`) 로 직접 정합니다.
+> 같은 이름이 이미 있으면 덮어쓰지 않고 멈춥니다.
 
 #### 3. Cursor 로 그 폴더를 엽니다
 
@@ -239,6 +251,7 @@ tailnet 주소에만 묶으므로 같은 공유기의 다른 사람에게는 보
 | `--update` | 도구를 최신 버전으로 갱신합니다 |
 | `start.ps1` / `start.sh` | 실습 웹을 띄웁니다 |
 | `web.ps1` / `web.sh` | 스터디 발표 슬라이드를 띄웁니다 |
+| `--new <작품이름>` | 내 발표 폴더를 만듭니다 (문서 폴더에) |
 
 이 저장소를 **포크해서 고쳐 쓰거나 PR 을 보내려면** → [포크한 저장소를 원본과 맞추기](docs/fork-and-sync.md).
 발표 자료를 만드는 것뿐이라면 포크는 필요 없습니다. `baseline` 을 복사하세요.
