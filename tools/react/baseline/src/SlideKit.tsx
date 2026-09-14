@@ -17,10 +17,14 @@ export type Block =
   | { kind: "youtube"; src: string; caption?: string }
   | { kind: "row"; left: Block[]; right: Block[] };
 
+export type Source = "paper" | "inferred" | "absent" | "reader" | "na";
+
 export type Slide = {
   label: string;
   title?: string;
   subtitle?: string;
+  /** 이 칸의 내용이 어디서 왔는지. tekneh 의 status 를 그대로 옮긴다. */
+  source?: Source;
   cover?: { kicker: string; title: string; lines: string[] };
   image?: string;
   blocks?: Block[];
@@ -76,6 +80,30 @@ export function inline(text: string): ReactNode {
         <Fragment key={i}>{linkify(part, String(i))}</Fragment>
       ),
     );
+}
+
+const SOURCE_LABEL: Record<Source, string> = {
+  paper: "논문에 적힘",
+  inferred: "논문에서 유추",
+  absent: "논문에 적히지 않음",
+  reader: "발표자가 채움",
+  na: "해당 없음",
+};
+
+function SourceBadge({ source, color }: { source: Source; color: string }) {
+  const warn = source === "absent";
+  return (
+    <span
+      className="mono shrink-0 self-start rounded-full px-4 py-1.5 text-[1.14rem] font-semibold tracking-[0.04em] whitespace-nowrap"
+      style={
+        warn
+          ? { backgroundColor: "hsl(45 95% 60% / 0.3)", color: "hsl(32 90% 26%)" }
+          : { backgroundColor: c(color, 0.12), color: c(color) }
+      }
+    >
+      {SOURCE_LABEL[source]}
+    </span>
+  );
 }
 
 function BlockView({ b, color }: { b: Block; color: string }) {
@@ -350,12 +378,15 @@ export function SlideView({ slide, section }: { slide: Slide; section: Section }
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="shrink-0 border-b-[3px] pb-3" style={{ borderColor: c(section.color) }}>
-        <h2
-          className="text-[3.12rem] font-bold tracking-tight break-keep"
-          style={{ color: c(section.color) }}
-        >
-          {slide.title ?? slide.label}
-        </h2>
+        <div className="flex items-start justify-between gap-6">
+          <h2
+            className="text-[3.12rem] font-bold tracking-tight break-keep"
+            style={{ color: c(section.color) }}
+          >
+            {slide.title ?? slide.label}
+          </h2>
+          {slide.source && <SourceBadge source={slide.source} color={section.color} />}
+        </div>
         {slide.subtitle && (
           <p className="mt-2 text-[1.62rem] leading-relaxed break-keep opacity-65">
             {inline(slide.subtitle)}
