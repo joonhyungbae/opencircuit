@@ -15,6 +15,11 @@ NODE_PIN="v22.20.0"
 SERVER_KEYS=("opencircuit-hello" "opencircuit-apiframe")
 SERVER_RELS=("core/hello/dist/index.js" "tools/apiframe/server/dist/index.js")
 LEGACY_KEYS=("opencircuit-hello-dev")
+# tekneh 는 우리 서버가 아니라 PyPI 패키지다 (SIGGRAPH 아트페이퍼 코퍼스 MCP).
+# 그래서 SERVER_KEYS 가 아니라 따로 둔다 — 빌드 대상이 아니고 uvx 로 뜬다.
+TEKNEH_KEY="tekneh"
+HAS_UV=0
+UV_BIN=""
 HAS_GIT=0
 CURSOR_DOWNLOAD_URL="https://cursor.com/download"
 HOME_OC="${HOME}/.opencircuit"
@@ -78,7 +83,7 @@ node_major() {
 }
 
 refresh_path() {
-  export PATH="${NODE_HOME_DIR}/bin:${PATH}"
+  export PATH="${NODE_HOME_DIR}/bin:${HOME}/.local/bin:${PATH}"
   if [[ -x /opt/homebrew/bin/brew ]]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
   elif [[ -x /usr/local/bin/brew ]]; then
@@ -201,6 +206,45 @@ probe_git() {
   HAS_GIT=0
   warn "git이 없습니다. 내려받기(tarball) 방식으로 설치합니다 — 설치·사용에는 문제가 없습니다."
   info "나중에 git이 필요해지면 ${GIT_DOWNLOAD_URL} 에서 설치하고 부트스트랩을 다시 실행하세요."
+}
+
+# uv 는 tekneh(아트페이퍼 코퍼스 MCP) 를 띄우는 데만 쓴다. 파이썬 패키지이기 때문이다.
+# git 과 같은 원칙으로 다룬다 — 없으면 설치를 시도하되, 실패해도 절대 중단하지 않는다.
+# tekneh 가 없어도 나머지 도구와 슬라이드 템플릿은 그대로 동작한다.
+# astral 설치 스크립트는 ~/.local/bin 에 넣으므로 관리자 암호를 묻지 않는다.
+probe_uv() {
+  local candidate
+  for candidate in "$(command -v uvx 2>/dev/null || true)" "${HOME}/.local/bin/uvx" "${HOME}/.cargo/bin/uvx"; do
+    if [[ -n "$candidate" && -x "$candidate" ]]; then
+      UV_BIN="$candidate"
+      HAS_UV=1
+      ok "uv 확인"
+      return
+    fi
+  done
+
+  info "아트페이퍼 코퍼스(tekneh)를 쓰려면 uv 가 필요합니다. 설치를 시도합니다."
+  if command -v curl >/dev/null 2>&1; then
+    curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
+  else
+    warn "curl 도 wget 도 없어 uv 를 받을 수 없습니다."
+  fi
+  refresh_path
+
+  for candidate in "${HOME}/.local/bin/uvx" "${HOME}/.cargo/bin/uvx" "$(command -v uvx 2>/dev/null || true)"; do
+    if [[ -n "$candidate" && -x "$candidate" ]]; then
+      UV_BIN="$candidate"
+      HAS_UV=1
+      ok "uv 설치됨"
+      return
+    fi
+  done
+
+  HAS_UV=0
+  warn "uv 를 설치하지 못했습니다. tekneh 없이 진행합니다 — 나머지 도구는 정상입니다."
+  info "나중에 쓰려면 https://docs.astral.sh/uv/getting-started/installation/ 을 보고 설치한 뒤 부트스트랩을 다시 실행하세요."
 }
 
 cursor_present() {
@@ -345,7 +389,24 @@ merge_mcp() {
     node "$(merge_script)" "${MCP_JSON}" "${key}" "${node_path}" "${entry}" \
       || fail "mcp.json 병합에 실패했습니다."
   done
+  if [[ "$HAS_UV" -eq 1 ]]; then
+    info "등록: ${TEKNEH_KEY} → ${UV_BIN} tekneh"
+    node "$(merge_script)" "${MCP_JSON}" "${TEKNEH_KEY}" "${UV_BIN}" "tekneh" \
+      || fail "mcp.json 병합에 실패했습니다."
+  fi
   ok "mcp.json 저장: ${MCP_JSON}"
+}
+
+# tekneh 는 stdio 핸드셰이크 대신 --version 으로 확인한다.
+# 겸사겸사 패키지를 미리 받아 두어, Cursor 에서 처음 부를 때 기다리지 않게 한다.
+verify_tekneh() {
+  [[ "$HAS_UV" -eq 1 ]] || return 0
+  info "tekneh 내려받는 중... 처음 한 번은 1~2분 걸릴 수 있습니다."
+  if "$UV_BIN" tekneh --help >/dev/null 2>&1; then
+    ok "tekneh 확인 (SIGGRAPH·SIGGRAPH Asia 아트페이퍼 229편)"
+  else
+    warn "tekneh 를 받지 못했습니다. 인터넷을 확인한 뒤 부트스트랩을 다시 실행하세요."
+  fi
 }
 
 invoke_verify() {
@@ -410,6 +471,21 @@ show_doctor() {
   fi
   printf '%-12s %s\n' "mcp.json" "$mcp_status"
 
+  local uv_bin_found=""
+  for uv_bin_found in "$(command -v uvx 2>/dev/null || true)" "${HOME}/.local/bin/uvx" "${HOME}/.cargo/bin/uvx"; do
+    [[ -n "$uv_bin_found" && -x "$uv_bin_found" ]] && break
+    uv_bin_found=""
+  done
+  if [[ -n "$uv_bin_found" ]]; then
+    if "$uv_bin_found" tekneh --help >/dev/null 2>&1; then
+      printf '%-12s %s\n' "tekneh" "OK (아트페이퍼 코퍼스)"
+    else
+      printf '%-12s %s\n' "tekneh" "FAIL (uv 는 있으나 tekneh 응답 없음 — 부트스트랩 재실행)"
+    fi
+  else
+    printf '%-12s %s\n' "tekneh" "없음 (선택 — uv 미설치. 슬라이드는 tekneh 없이도 만들 수 있습니다)"
+  fi
+
   local i key rel entry short
   if [[ -z "$major" || "$major" -lt 20 ]]; then
     printf '%-12s %s\n' "서버응답" "FAIL (Node 20+ 필요)"
@@ -452,14 +528,19 @@ fi
 
 ensure_node
 probe_git
+probe_uv
 ensure_cursor
 ensure_repo
 build_repo
 merge_mcp
 invoke_verify
+verify_tekneh
 
 ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 와 opencircuit-apiframe 초록불을 확인하세요."
 info "이미지 생성을 쓰려면 ${MCP_JSON} 의 opencircuit-apiframe env 에 APIFRAME_KEY 를 넣으세요."
+if [[ "$HAS_UV" -eq 1 ]]; then
+  info "아트페이퍼 스터디: tekneh 도 등록했습니다. prompts/04-study-slides.md 를 보세요."
+fi
 info "도구 위치: ${REPO_DIR} — 작품·작업 폴더는 여기에 두지 마세요."
 info "업데이트: ./install.sh --update"
 echo ""

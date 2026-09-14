@@ -31,6 +31,11 @@ $CommitApiUrl = "https://api.github.com/repos/joonhyungbae/opencircuit/commits/m
 $HomeOpenCircuit = Join-Path $env:USERPROFILE ".opencircuit"
 $RepoDir = Join-Path $HomeOpenCircuit "repo"
 $script:HasGit = $false
+# tekneh 는 우리 서버가 아니라 PyPI 패키지다 (SIGGRAPH 아트페이퍼 코퍼스 MCP).
+# 그래서 $Servers 가 아니라 따로 둔다 — 빌드 대상이 아니고 uvx 로 뜬다.
+$TeknehKey = "tekneh"
+$script:HasUv = $false
+$script:UvBin = $null
 $McpJsonPath = Join-Path $env:USERPROFILE ".cursor\mcp.json"
 $ScriptDir = $PSScriptRoot
 $VerifyScript = Join-Path $ScriptDir "verify.mjs"
@@ -180,6 +185,49 @@ function Ensure-Node {
 # git 은 있으면 쓰고 없으면 tarball 로 우회한다.
 # winget 의 git 설치는 권한 승격 창을 띄울 수 있고, 수업 중에 이건 막히는 지점이다.
 # 따라서 여기서 절대 중단하지 않는다.
+function Find-UvBin {
+  $cmd = Get-Command uvx -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
+  foreach ($p in @(
+      (Join-Path $env:USERPROFILE ".local\bin\uvx.exe"),
+      (Join-Path $env:USERPROFILE ".cargo\bin\uvx.exe"))) {
+    if (Test-Path $p) { return $p }
+  }
+  return $null
+}
+
+# uv 는 tekneh(아트페이퍼 코퍼스 MCP) 를 띄우는 데만 쓴다. 파이썬 패키지이기 때문이다.
+# git 과 같은 원칙 — 없으면 설치를 시도하되, 실패해도 절대 중단하지 않는다.
+# tekneh 가 없어도 나머지 도구와 슬라이드 템플릿은 그대로 동작한다.
+# astral 설치 스크립트는 %USERPROFILE%\.local\bin 에 넣으므로 관리자 권한을 묻지 않는다.
+function Resolve-UvAvailability {
+  $found = Find-UvBin
+  if ($found) {
+    $script:UvBin = $found
+    $script:HasUv = $true
+    Write-Ok "uv 확인"
+    return
+  }
+
+  Write-Info "아트페이퍼 코퍼스(tekneh)를 쓰려면 uv 가 필요합니다. 설치를 시도합니다."
+  try {
+    Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
+    Refresh-Path
+  } catch { }
+
+  $found = Find-UvBin
+  if ($found) {
+    $script:UvBin = $found
+    $script:HasUv = $true
+    Write-Ok "uv 설치됨"
+    return
+  }
+
+  $script:HasUv = $false
+  Write-WarnMsg "uv 를 설치하지 못했습니다. tekneh 없이 진행합니다 — 나머지 도구는 정상입니다."
+  Write-Info "나중에 쓰려면 https://docs.astral.sh/uv/getting-started/installation/ 을 보고 설치한 뒤 부트스트랩을 다시 실행하세요."
+}
+
 function Resolve-GitAvailability {
   if (Test-GitPresent) {
     $script:HasGit = $true
@@ -390,10 +438,31 @@ function Merge-McpConfig {
       exit 1
     }
   }
+  if ($script:HasUv) {
+    Write-Info "등록: $TeknehKey → $($script:UvBin) tekneh"
+    $r = Invoke-Native $nodePath @($merge, $McpJsonPath, $TeknehKey, $script:UvBin, "tekneh")
+    if ($r.ExitCode -ne 0) {
+      Write-Fail "mcp.json 병합 실패:`n$($r.Output)"
+      exit 1
+    }
+  }
   Write-Ok "mcp.json 저장: $McpJsonPath"
   $afterKeys = @((Read-McpJson).mcpServers.PSObject.Properties.Name)
   if ($beforeKeys.Count -gt 0) {
     Write-Ok "서버 키: $($afterKeys -join ', ')"
+  }
+}
+
+# tekneh 는 stdio 핸드셰이크 대신 --help 로 확인한다 (배포판에 --version 이 없다).
+# 겸사겸사 패키지를 미리 받아 두어, Cursor 에서 처음 부를 때 기다리지 않게 한다.
+function Test-Tekneh {
+  if (-not $script:HasUv) { return }
+  Write-Info "tekneh 내려받는 중... 처음 한 번은 1~2분 걸릴 수 있습니다."
+  $r = Invoke-Native $script:UvBin @("tekneh", "--help")
+  if ($r.ExitCode -eq 0) {
+    Write-Ok "tekneh 확인 (SIGGRAPH·SIGGRAPH Asia 아트페이퍼 229편)"
+  } else {
+    Write-WarnMsg "tekneh 를 받지 못했습니다. 인터넷을 확인한 뒤 부트스트랩을 다시 실행하세요."
   }
 }
 
@@ -466,6 +535,18 @@ function Show-Doctor {
   }
   $rows += [pscustomobject]@{ Item = "mcp.json"; Status = $mcpStatus }
 
+  $uvFound = Find-UvBin
+  if ($uvFound) {
+    $rt = Invoke-Native $uvFound @("tekneh", "--help")
+    if ($rt.ExitCode -eq 0) {
+      $rows += [pscustomobject]@{ Item = "tekneh"; Status = "OK (아트페이퍼 코퍼스)" }
+    } else {
+      $rows += [pscustomobject]@{ Item = "tekneh"; Status = "FAIL (uv 는 있으나 tekneh 응답 없음 — 부트스트랩 재실행)" }
+    }
+  } else {
+    $rows += [pscustomobject]@{ Item = "tekneh"; Status = "없음 (선택 — uv 미설치. 슬라이드는 tekneh 없이도 만들 수 있습니다)" }
+  }
+
   $verifyInRepo = Join-Path $RepoDir "bootstrap\verify.mjs"
   $verify = if (Test-Path $verifyInRepo) { $verifyInRepo } else { $VerifyScript }
   $nodePath = Get-NodePath
@@ -508,16 +589,21 @@ if ($Doctor) {
 
 Ensure-Node
 Resolve-GitAvailability
+Resolve-UvAvailability
 Ensure-CursorOrAbort
 Ensure-Repo -ForceUpdate:$Update
 Build-Repo
 Merge-McpConfig
 $ok = Invoke-Verify
 if (-not $ok) { exit 1 }
+Test-Tekneh
 
 Write-Host ""
 Write-Ok "준비 완료. Cursor를 완전히 종료했다가 다시 연 뒤 MCP 목록에서 opencircuit-hello 와 opencircuit-apiframe 초록불을 확인하세요."
 Write-Info "이미지 생성을 쓰려면 $McpJsonPath 의 opencircuit-apiframe env 에 APIFRAME_KEY 를 넣으세요."
+if ($script:HasUv) {
+  Write-Info "아트페이퍼 스터디: tekneh 도 등록했습니다. prompts\04-study-slides.md 를 보세요."
+}
 Write-Info "도구 위치: $RepoDir — 작품·작업 폴더는 여기에 두지 마세요."
 Write-Info "업데이트: .\install.ps1 -Update"
 Write-Host ""

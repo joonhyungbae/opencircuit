@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /**
  * 전역 mcp.json 병합.
- * 사용법: node merge-mcp.mjs <mcp.json경로> <서버키> <node경로> <진입스크립트경로>
+ * 사용법: node merge-mcp.mjs <mcp.json경로> <서버키> <실행파일> [인자...]
+ * 예) node merge-mcp.mjs ~/.cursor/mcp.json opencircuit-hello /usr/bin/node /path/dist/index.js
+ *     node merge-mcp.mjs ~/.cursor/mcp.json tekneh /home/u/.local/bin/uvx tekneh
  * 기존 키는 보존하고 지정 키만 덮어쓴다.
  * 이미 있는 env 값은 유지하고, 없으면 env: {} 를 둔다.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 
-const [mcpPath, key, nodePath, entryPath] = process.argv.slice(2);
-if (!mcpPath || !key || !nodePath || !entryPath) {
+const [mcpPath, key, commandPath, ...commandArgs] = process.argv.slice(2);
+if (!mcpPath || !key || !commandPath || commandArgs.length === 0) {
   console.error(
-    "사용법: node merge-mcp.mjs <mcp.json> <서버키> <node경로> <진입스크립트>",
+    "사용법: node merge-mcp.mjs <mcp.json> <서버키> <실행파일> [인자...]",
   );
   process.exit(2);
 }
@@ -42,8 +44,8 @@ const prevEnv =
     : {};
 
 config.mcpServers[key] = {
-  command: nodePath,
-  args: [entryPath],
+  command: commandPath,
+  args: commandArgs,
   env: prevEnv,
 };
 

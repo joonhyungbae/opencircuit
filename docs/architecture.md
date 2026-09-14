@@ -26,9 +26,24 @@
 
 - MCP **서버 코드**는 호스트를 모른다. stdio로 뜨고 tool을 노출할 뿐이다.
 - 호스트마다 다른 것은 **설정 파일 형식·경로**뿐이다. 서버 안에 `if (cursor)` 분기를 두지 않는다.
-- mcp.json의 `command`는 **`node`(실제 실행파일) + 절대경로 args**다.
+- mcp.json의 `command`는 **실행파일 절대경로 + args**다.
+  우리 서버는 `node` + 진입 스크립트 절대경로다.
   Windows에서 `npx`(.cmd)를 쓸 때 필요했던 `cmd /c` 래핑은 **쓰지 않는다**.
   OS 분기는 경로 구분자(`\` / `/`) 정도만 남는다.
+
+### 외부 MCP 서버: tekneh
+
+`tekneh`(SIGGRAPH·SIGGRAPH Asia 아트페이퍼 코퍼스)는 **우리가 만든 서버가 아니다.**
+PyPI 패키지이고 `uvx tekneh` 로 뜬다. 따라서:
+
+- `SERVER_KEYS`/`$Servers` 에 넣지 않는다. 빌드 대상이 아니다
+- `merge-mcp.mjs` 는 `<실행파일> [인자...]` 를 받도록 일반화되어 있다
+  (우리 서버는 `node <진입스크립트>`, tekneh 는 `uvx tekneh`)
+- 검증은 stdio 핸드셰이크가 아니라 `uvx tekneh --help` 다.
+  PyPI 배포판에는 `--version` 이 없다
+- **선택 의존성이다.** `uv` 설치에 실패해도 부트스트랩은 중단하지 않는다.
+  tekneh 없이도 슬라이드 템플릿과 나머지 도구는 전부 동작한다
+  (`prompts/04-study-slides.md` 에 코퍼스 밖 논문용 대체 절차가 있다)
 
 ```
 [Cursor / Claude Code / Codex]
