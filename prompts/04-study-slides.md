@@ -128,7 +128,8 @@ tekneh 가 대신 만들어 줄 수 없는 항목이다.
 
 ## 6단계 — deck.json 을 조립한다
 
-블록 명세는 `tools/react/README.md` 를 본다. 조립할 때 지킬 것:
+블록 명세는 **작업 중인 폴더의 `README.md`** 에 있다 (저장소에서는 `tools/react/README.md`).
+먼저 그 표를 읽어라. 조립할 때 지킬 것:
 
 - **`cards` 와 `bullets` 만 반복하지 마라.** 표로 보여야 할 것은 `table`,
   좌우 비교는 `row`, 시간 순서는 `steps` 다. ④는 `table` 이 기본이다

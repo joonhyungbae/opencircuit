@@ -118,21 +118,62 @@ It is not "there was none" — it is **"not stated in the paper (whether it exis
 Set `source` on a slide and a badge appears next to its title, so what the paper stated
 and what the presenter supplied stay visually distinct.
 
-### Drafting from one paper
+### Preparing a talk, start to finish
 
-With `tekneh` attached you can look a paper up and fill the eleven boxes from it.
-That corpus codes eleven fields, and they map one-to-one onto the boxes above.
+How to have Cursor read the paper and build the slides. No coding involved.
+
+**1. Pick a paper and note its DOI.** From the SIGGRAPH or SIGGRAPH Asia **Art Papers**.
+The `10.1145/...` in the ACM Digital Library URL is the DOI.
+**Download the PDF yourself in a browser** — the ACM DL blocks scripted access, so asking
+an agent to fetch it will fail.
+
+**2. Make your talk folder.** Under your documents folder, create
+`OpenCircuit/<work-name>-study/` and copy two things into it:
+
+| What | From |
+|---|---|
+| the contents of `baseline/` | `~/.opencircuit/repo/tools/react/baseline/` |
+| `04-study-slides.md` | `~/.opencircuit/repo/prompts/` |
+
+Put the downloaded PDF there too. The copied folder carries its own `README.md` with the
+eleven block types and the `source` table, so you never need to reopen the repository.
+
+**3. Open that folder in Cursor** — File → Open Folder. Your talk folder, not the repository.
+
+**4. Ask the agent.** In Cursor chat (agent mode), swap in your DOI:
 
 ```
-@prompts/04-study-slides.md make one from 10.1145/3757369.3767596
+@04-study-slides.md
+Paper DOI: 10.1145/3757369.3767596
+The PDF is in this folder.
+Please fill in src/deck.json from this paper.
 ```
 
-The procedure and its rules live in [prompts/04-study-slides.md](prompts/04-study-slides.md).
-The corpus is **SIGGRAPH · SIGGRAPH Asia art papers 2009–2026, 229 work papers.**
-Anything outside it (Ars Electronica, NIME, ISEA…) you read and fill yourself.
+It follows the [procedure](prompts/04-study-slides.md) and looks the paper up through
+`tekneh`, whose eleven coded fields map one-to-one onto the
+boxes above — so this is a lookup, not a guess. The corpus is **SIGGRAPH · SIGGRAPH Asia
+art papers 2009–2026, 229 work papers.** Anything outside it (Ars Electronica, NIME, ISEA…)
+gets read from the PDF instead, and every box is marked `source: reader`.
 
-Even with a draft, **three places stay for the presenter** — why this paper, the one
-sentence for box 9, and the third discussion prompt.
+**5. Look at the badged slides.** Start with the yellow **"not stated in the paper"** ones.
+Leave the box empty and carry it as something to find out (the default), or fill it from
+outside the paper and change `source` to `reader`. **Never fill it with a guess** — those
+gaps are what the discussion runs on.
+
+**6. Add the figures.** Capture the paper's figures into `public/`, then set `src` to
+`/filename.png` in each `figure` block. The agent notes which figure it wants in the caption.
+
+**7. Write your three places.** The agent leaves these deliberately empty:
+why you chose this paper, the one sentence for box 9, and the third discussion prompt.
+
+**8. Run it.** From the repository root:
+
+```bash
+./web.sh ~/Documents/OpenCircuit/<work-name>-study
+```
+
+Edit `deck.json` and the browser reloads. `←` `→` to move, `F` for full screen,
+append `#7` to the URL to jump to slide 7.
 
 ### When you are on SSH
 
