@@ -201,6 +201,9 @@ It binds to the tailnet address only, so others on the same router cannot see it
 | `start.ps1` / `start.sh` | Start the studio web |
 | `web.ps1` / `web.sh` | Start the study presentation slides |
 
+**Forking this repository** to modify it or send a PR → [keeping a fork in sync](docs/fork-and-sync.md) (Korean).
+If you only want to build a talk, you do not need a fork — copy `baseline` instead.
+
 The bootstrap also registers the art-paper corpus MCP (`tekneh`). It is a Python package
 and needs `uv`, which the bootstrap installs for you. **It is optional — a failed install
 does not stop the bootstrap**, and slides work without it. `--doctor` reports a `tekneh` row.
@@ -246,7 +249,8 @@ opencircuit/
 │   ├── install.sh      # macOS / Linux
 │   └── README.md       # Detailed guide for participants
 └── docs/
-    └── architecture.md # Design principles and decisions
+    ├── architecture.md    # Design principles and decisions
+    └── fork-and-sync.md   # Keeping a fork in sync
 ```
 
 Folders are named after **the software**, not a role or a class schedule.
