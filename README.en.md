@@ -80,6 +80,76 @@ The browser opens `http://127.0.0.1:1234`. Details → [web/README.md](web/READM
 
 ---
 
+## Study slides
+
+Where the Closed Circuit Busan study group **reads one art paper and builds a talk from it.**
+Not a PPT file — you present from the browser. From the repository root:
+
+**Windows** — PowerShell:
+
+```powershell
+.\web.ps1
+```
+
+**macOS / Linux**:
+
+```bash
+./web.sh
+```
+
+The browser opens `http://127.0.0.1:5173`. Pass a folder to open your own deck instead.
+Details → [tools/react/README.md](tools/react/README.md)
+
+### The eleven boxes
+
+The talk asks, in eleven boxes, **what the paper actually wrote down.**
+
+```
+1 what the audience does → 2 what is sensed → 3 where computation runs
+→ 4 real-time vs pre-rendered → 5 software → 6 what is output
+→ 7 venue requirements → 8 was it released → 9 the question the work asks
+10 abandoned attempts · 11 who did what   ← these sit under "how it was made"
+```
+
+**An empty box matters as much as a filled one.** If the paper did not say, leave it empty
+and carry it as something to find out. Do not fill it with a guess.
+It is not "there was none" — it is **"not stated in the paper (whether it existed is unknown)."**
+
+Set `source` on a slide and a badge appears next to its title, so what the paper stated
+and what the presenter supplied stay visually distinct.
+
+### Drafting from one paper
+
+With `tekneh` attached you can look a paper up and fill the eleven boxes from it.
+That corpus codes eleven fields, and they map one-to-one onto the boxes above.
+
+```
+@prompts/04-study-slides.md make one from 10.1145/3757369.3767596
+```
+
+The procedure and its rules live in [prompts/04-study-slides.md](prompts/04-study-slides.md).
+The corpus is **SIGGRAPH · SIGGRAPH Asia art papers 2009–2026, 229 work papers.**
+Anything outside it (Ars Electronica, NIME, ISEA…) you read and fill yourself.
+
+Even with a draft, **three places stay for the presenter** — why this paper, the one
+sentence for box 9, and the third discussion prompt.
+
+### When you are on SSH
+
+Over SSH there is no screen inside the server, so no browser can open.
+**If Tailscale is up, `web.sh` binds to the tailnet address on its own.** No flag needed.
+If it is not, the script says so, serves on `127.0.0.1`, and prints the SSH port-forward command.
+
+| Flag | What it does |
+|---|---|
+| `--tailscale` | Use the tailnet address even when a screen exists |
+| `--local` | Turn the automatic switch off; bind `127.0.0.1` only |
+| `--doctor` | Diagnose why the browser will not open |
+
+It binds to the tailnet address only, so others on the same router cannot see it.
+
+---
+
 ## Commands
 
 | Command | What it does |
@@ -89,6 +159,10 @@ The browser opens `http://127.0.0.1:1234`. Details → [web/README.md](web/READM
 | `--update` | Update the tools to the latest version |
 | `start.ps1` / `start.sh` | Start the studio web |
 | `web.ps1` / `web.sh` | Start the study presentation slides |
+
+The bootstrap also registers the art-paper corpus MCP (`tekneh`). It is a Python package
+and needs `uv`, which the bootstrap installs for you. **It is optional — a failed install
+does not stop the bootstrap**, and slides work without it. `--doctor` reports a `tekneh` row.
 
 ---
 
@@ -124,6 +198,8 @@ opencircuit/
 ├── start.sh            # Launch the studio web (macOS / Linux)
 ├── web.ps1             # Launch the study slides (Windows)
 ├── web.sh              # Launch the study slides (macOS / Linux)
+├── prompts/            # Procedures you paste into an agent
+│   └── 04-study-slides.md  # Art paper → presentation slides
 ├── bootstrap/          # Install scripts
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS / Linux
