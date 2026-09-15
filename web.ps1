@@ -100,12 +100,14 @@ function New-StudyFolder([string]$Name) {
     Where-Object { $_.Name -notin @("node_modules", "dist") } |
     ForEach-Object { Copy-Item -Path $_.FullName -Destination $target -Recurse -Force }
 
-  # 절차서를 같이 둔다. 그래야 Cursor 채팅에서 @04-study-slides.md 로 부를 수 있다.
-  $proc = Join-Path $Root "prompts\04-study-slides.md"
-  if (Test-Path $proc) {
-    Copy-Item -Path $proc -Destination $target -Force
-  } else {
-    Write-WarnMsg "절차서를 찾지 못했습니다: $proc"
+  # 안내서와 절차서를 같이 둔다. 그래야 Cursor 채팅에서 @05-study-guide.md 로 이어서 부를 수 있다.
+  foreach ($name in @("05-study-guide.md", "04-study-slides.md")) {
+    $proc = Join-Path $Root "prompts\$name"
+    if (Test-Path $proc) {
+      Copy-Item -Path $proc -Destination $target -Force
+    } else {
+      Write-WarnMsg "안내 파일을 찾지 못했습니다: $proc"
+    }
   }
   Write-Ok "폴더를 만들었습니다."
 
@@ -125,14 +127,11 @@ function New-StudyFolder([string]$Name) {
   Write-Host ""
   Write-Ok "준비됐습니다: $target"
   Write-Host ""
-  Write-Host "  1. Cursor 에서 File → Open Folder 로 위 폴더를 엽니다."
-  Write-Host "  2. 채팅(에이전트 모드)에 이렇게 씁니다:"
+  Write-Host "  다음 단계는 안내서를 따릅니다. Cursor 채팅(에이전트 모드)에 이렇게 씁니다:"
   Write-Host ""
-  Write-Host "       @04-study-slides.md"
-  Write-Host "       논문 DOI: 10.1145/..."
-  Write-Host "       이 논문으로 src/deck.json 을 채워 주세요."
+  Write-Host "       $target\05-study-guide.md 를 읽고 4단계부터 안내해 주세요."
   Write-Host ""
-  Write-Host "  3. 확인:  .\web.ps1 `"$target`""
+  Write-Host "  직접 띄워 보려면:  .\web.ps1 `"$target`""
   Write-Host ""
 }
 

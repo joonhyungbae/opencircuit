@@ -235,12 +235,14 @@ make_study_folder() {
       cp -R "$e" "${target}/"
     done
   )
-  # 절차서를 같이 둔다. 그래야 Cursor 채팅에서 @04-study-slides.md 로 부를 수 있다.
-  if [[ -f "${ROOT}/prompts/04-study-slides.md" ]]; then
-    cp "${ROOT}/prompts/04-study-slides.md" "${target}/"
-  else
-    warn "절차서를 찾지 못했습니다: ${ROOT}/prompts/04-study-slides.md"
-  fi
+  # 안내서와 절차서를 같이 둔다. 그래야 Cursor 채팅에서 @05-study-guide.md 로 이어서 부를 수 있다.
+  for e in 05-study-guide.md 04-study-slides.md; do
+    if [[ -f "${ROOT}/prompts/${e}" ]]; then
+      cp "${ROOT}/prompts/${e}" "${target}/"
+    else
+      warn "안내 파일을 찾지 못했습니다: ${ROOT}/prompts/${e}"
+    fi
+  done
   ok "폴더를 만들었습니다."
 
   info "의존성을 설치합니다. 처음 한 번, 몇 분 걸립니다."
@@ -253,14 +255,11 @@ make_study_folder() {
   echo ""
   ok "준비됐습니다: ${target}"
   echo ""
-  echo "  1. Cursor 에서 File → Open Folder 로 위 폴더를 엽니다."
-  echo "  2. 채팅(에이전트 모드)에 이렇게 씁니다:"
+  echo "  다음 단계는 안내서를 따릅니다. Cursor 채팅(에이전트 모드)에 이렇게 씁니다:"
   echo ""
-  echo "       @04-study-slides.md"
-  echo "       논문 DOI: 10.1145/..."
-  echo "       이 논문으로 src/deck.json 을 채워 주세요."
+  echo "       ${target}/05-study-guide.md 를 읽고 4단계부터 안내해 주세요."
   echo ""
-  echo "  3. 확인:  ./web.sh \"${target}\""
+  echo "  직접 띄워 보려면:  ./web.sh \"${target}\""
   echo ""
 }
 
