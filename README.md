@@ -140,9 +140,10 @@ Cursor 가 이 파일을 읽고 한 단계씩 안내하므로 명령어를 외�
 2. Cursor 에서 **File → Open Folder** 로 문서 폴더의 `OpenCircuit` 폴더를 엽니다. 없으면 새로 만듭니다.
 
 **채팅(에이전트 모드)에 이렇게 씁니다.** `cutting-kim` 자리에 내 발표 작품의 이름을 영문으로 적습니다.
+도구를 설치한 적이 없어도 됩니다. 에이전트가 이 저장소를 설치하는 것부터 합니다.
 
 ```
-~/.opencircuit/repo/prompts/05-study-guide.md 를 읽고 그 순서대로 발표 준비를 안내해 주세요.
+https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/prompts/05-study-guide.md 를 읽고 그 순서대로 발표 준비를 안내해 주세요.
 작품 이름은 cutting-kim 입니다.
 ```
 

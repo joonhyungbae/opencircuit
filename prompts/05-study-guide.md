@@ -3,11 +3,12 @@
 > 사용법: Cursor 로 문서 폴더의 `OpenCircuit` 폴더를 열고, 채팅(에이전트 모드)에 이렇게 씁니다.
 >
 > ```
-> ~/.opencircuit/repo/prompts/05-study-guide.md 를 읽고 그 순서대로 발표 준비를 안내해 주세요.
+> https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/prompts/05-study-guide.md 를 읽고 그 순서대로 발표 준비를 안내해 주세요.
 > 작품 이름은 cutting-kim 입니다.
 > ```
 >
 > `cutting-kim` 자리에 내 발표 작품의 이름을 영문으로 적습니다.
+> 도구를 설치한 적이 없어도 됩니다. 0단계에서 에이전트가 설치합니다.
 > 사람이 읽는 판은 https://opencircuit.club/study/guideline 에 있습니다.
 
 ---
@@ -47,16 +48,47 @@ Cursor 의 기본 모델은 코드 작성에 맞춰져 있다. 논문을 읽고 
 
 ---
 
-## 0. 도구를 최신으로 받는다
+## 0. 도구를 설치하거나 최신으로 받는다
 
-발표자에게 묻지 않고 한다.
+발표자에게 묻지 않고 한다. 발표자는 git 이나 터미널을 모른다고 여기고, 무엇을 하는지 한 줄로만 알린다.
+
+**도구 저장소 폴더가 없으면 설치한다.** 설치 스크립트가 Node·git 이 없어도 알아서 처리하고,
+관리자 권한을 묻지 않는다. 몇 분 걸린다고 먼저 알린다.
+
+```bash
+# macOS · Linux
+curl -fsSL https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.sh -o /tmp/oc-install.sh
+bash /tmp/oc-install.sh
+```
+
+```powershell
+# Windows (PowerShell)
+Set-ExecutionPolicy -Scope Process Bypass -Force
+irm https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/bootstrap/install.ps1 -OutFile "$env:TEMP\oc-install.ps1"
+& "$env:TEMP\oc-install.ps1"
+```
+
+설치가 끝나면 이렇게 알리고 기다린다. 논문 조회 도구(tekneh)는 Cursor 를 다시 열어야 연결된다.
+
+> 도구 설치가 끝났습니다. Cursor 를 완전히 종료했다가 다시 열고, OpenCircuit 폴더가 열린 창의 채팅에
+> 아래 두 줄을 붙여 넣어 주세요.
+>
+> ```
+> ~/.opencircuit/repo/prompts/05-study-guide.md 를 읽고 1단계부터 이어서 안내해 주세요.
+> 작품 이름은 <작품이름> 입니다.
+> ```
+
+발표자가 다시 열지 않고 계속하자고 하면 진행한다. 4단계에서 tekneh 가 없으면 절차서대로 PDF 를 직접 읽는다.
+
+**폴더가 있으면 최신으로 받는다.**
 
 ```
-git -C <도구 저장소> pull --ff-only
+bash <도구 저장소>/bootstrap/install.sh --update                 # macOS · Linux
+& "<도구 저장소>\bootstrap\install.ps1" -Update                   # Windows
 ```
 
-실패하면 이유를 한 줄로 알리고 발표자에게 `install.sh --update`(Windows 는 `install.ps1 -Update`)를
-권한다. 저장소 안에 발표자가 만든 파일이 있으면 지우지 마라.
+실패하면 이유를 한 줄로 알리고, 1단계로 넘어가도 되는지 발표자에게 묻는다.
+저장소 안에 발표자가 만든 파일이 있으면 지우지 마라.
 
 ---
 
