@@ -163,6 +163,9 @@ https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/prompts/05-study
 > 입력해 Claude 로 바꾸기를 권합니다. Claude 는 토큰을 많이 써서 사용 한도가 빨리 줄어드니,
 > 꼭 필요한 단계에서만 쓰고 끝나면 기본 모델로 돌아옵니다.
 
+발표가 끝나면 발표 폴더를 통째로 압축해 기획자(배준형)에게 보냅니다.
+[opencircuit.club/study](https://opencircuit.club/study) 에 회차 순으로 올라갑니다.
+
 `web.sh --new` 는 발표 폴더에 안내서와 절차서를 함께 복사합니다. 중간에 멈췄다면 발표 폴더의
 `05-study-guide.md` 를 부르고 몇 단계부터인지 말하면 이어집니다.
 
