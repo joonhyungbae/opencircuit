@@ -169,6 +169,20 @@ https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/prompts/05-study
 `web.sh --new` 는 발표 폴더에 안내서와 절차서를 함께 복사합니다. 중간에 멈췄다면 발표 폴더의
 `05-study-guide.md` 를 부르고 몇 단계부터인지 말하면 이어집니다.
 
+### 제작 계획서 — 안내서 하나로
+
+12월 전시 작품의 제작 계획서는 [`prompts/06-plan-guide.md`](prompts/06-plan-guide.md) 가 안내합니다.
+Cursor 와 대화하며 `plan.md` 를 한 칸씩 채우고, 칸을 마칠 때마다 내 구글 문서로 올립니다.
+구글 문서에는 기획자가 댓글을 답니다. 전용 주소는 각자의 튜터링 페이지에 있습니다.
+사람이 읽는 판 → [opencircuit.club/wiki/plan](https://opencircuit.club/wiki/plan)
+
+```
+https://raw.githubusercontent.com/joonhyungbae/opencircuit/main/prompts/06-plan-guide.md 를 읽고 그 순서대로 제작 계획서를 안내해 주세요.
+내 전용 주소는 (튜터링 페이지에서 복사한 주소) 입니다.
+```
+
+계획서는 문서 폴더의 `OpenCircuit/plan/plan.md` 에 생깁니다. 템플릿은 [`templates/plan/plan.md`](templates/plan/plan.md).
+
 ### SSH 로 붙어 있을 때
 
 서버에 SSH 로 접속한 상태면 그 안에 화면이 없어 브라우저가 뜨지 않습니다.
@@ -241,7 +255,9 @@ opencircuit/
 ├── web.sh              # 스터디 슬라이드 실행 (macOS · Linux)
 ├── prompts/            # 에이전트에게 붙여넣는 절차서
 │   ├── 04-study-slides.md  # 아트 페이퍼 → 발표 슬라이드 (절차서)
-│   └── 05-study-guide.md   # 스터디 발표 준비 여덟 단계 (안내서)
+│   ├── 05-study-guide.md   # 스터디 발표 준비 여덟 단계 (안내서)
+│   └── 06-plan-guide.md    # 제작 계획서 쓰기 (안내서)
+├── templates/plan/     # 제작 계획서 템플릿 plan.md
 ├── bootstrap/          # 설치 스크립트
 │   ├── install.ps1     # Windows
 │   ├── install.sh      # macOS · Linux
