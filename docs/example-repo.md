@@ -44,6 +44,7 @@ cd <대표기술>-<의도> && git init
 | `NOTICE.md` | 제3자 구성요소와 라이선스. 받아 쓰는 자료의 출처도 |
 | `docs/notes.md` | 왜 이렇게 만들었는지. README 에서 뺀 긴 설명 |
 | `.gitignore` | 큰 자료(소리·영상·모델·엔진)는 커밋하지 않는다 |
+| `.gitattributes` | 줄바꿈 고정. `.sh` 가 CRLF 로 받히면 맥에서 `bad interpreter` 로 죽는다 |
 
 ## 코드 구성
 
@@ -148,6 +149,8 @@ web/
 - 매 바퀴 `sleep(한 블록)` 으로는 실시간을 못 맞춘다. 다음에 깨어날 시각을 정해 두고 맞춘다
 - 리눅스의 `open` 은 맥의 그것과 다른 명령이다
 - 같은 프로그램을 여러 번 켜면 포트가 겹친다. 비어 있는 포트를 찾아 쓴다
+- `.ps1` 은 UTF-8 BOM 을 붙여 저장한다. BOM 이 없으면 한국어 윈도우의 PowerShell 5.1 이 CP949 로 읽어
+  한국어가 깨지고 문자열이 꼬인다. 줄바꿈은 `.gitattributes` 로 고정한다(.sh 는 LF, .ps1 은 CRLF)
 - conda 는 터미널 설정을 읽지 않는 자리(curl | bash, 더블클릭, 자동 시작)에서도 찾아야 한다.
   `type -P conda` 다음에 흔한 설치 위치(`~/miniforge3`, `~/miniconda3`, `~/anaconda3` 등)를 차례로 본다
 - Miniforge 설치 파일은 이름이 `.sh` 로 끝나지 않으면 「bash 로 실행하라」며 멈춘다

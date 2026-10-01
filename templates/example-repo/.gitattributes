@@ -1,0 +1,18 @@
+# 줄바꿈을 저장소에서 고정한다.
+# install.sh 가 CRLF 로 체크아웃되면 macOS 에서 `bad interpreter: /bin/bash^M` 로 죽는다.
+# 커밋하는 사람의 core.autocrlf 설정에 의존하지 않게 한다.
+
+* text=auto
+
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.js   text eol=lf
+*.ts   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+*.ps1  text eol=crlf
+
+*.png binary
+*.jpg binary
+*.gz  binary

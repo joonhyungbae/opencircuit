@@ -1,4 +1,4 @@
-# conda 를 찾고, 없으면 Miniforge 를 깐다. install.ps1 · start.ps1 이 불러 쓴다.
+﻿# conda 를 찾고, 없으면 Miniforge 를 깐다. install.ps1 · start.ps1 이 불러 쓴다.
 # 터미널 설정을 읽지 않아도 찾도록 흔한 설치 위치를 차례로 본다.
 
 $EnvName = "<환경이름>"

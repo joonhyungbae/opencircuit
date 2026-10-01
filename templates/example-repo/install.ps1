@@ -1,4 +1,4 @@
-# 한 줄로 깔기 (윈도우)
+﻿# 한 줄로 깔기 (윈도우)
 #
 #   Set-ExecutionPolicy -Scope Process Bypass -Force
 #   irm https://raw.githubusercontent.com/<계정>/<저장소>/main/install.ps1 -OutFile "$env:TEMP\sc-install.ps1"
