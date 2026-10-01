@@ -280,6 +280,19 @@ Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/
 
 ---
 
+## 따로 있는 저장소
+
+작품의 출발점이 되는 예제는 **저장소 하나에 하나씩** 둡니다. 도구마다 고치는 속도가 다르고,
+필요한 사람만 받아 가면 되기 때문입니다. 이 저장소는 그것들을 모아 안내하는 자리입니다.
+
+| 저장소 | 무엇인가 | 언어 |
+|---|---|---|
+| [stepchorus](https://github.com/joonhyungbae/stepchorus) | 관객의 걸음이 긴 소리로 쌓여 합주가 된다. 웹캠·노트북·스피커 두 대. 브라우저 대시보드로 값을 바꾼다 | Python |
+
+받는 법은 각 저장소의 README 에 있습니다. 설치 스크립트는 이 저장소만 받습니다.
+
+---
+
 ## 설계 원칙
 
 **호스트 중립.** 1순위는 Cursor지만 Claude Code·Codex에서도 같은 서버가 그대로 동작합니다.
