@@ -287,7 +287,10 @@ Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/
 
 | 저장소 | 무엇인가 | 언어 |
 |---|---|---|
-| [stepchorus](https://github.com/joonhyungbae/stepchorus) | 관객의 걸음이 긴 소리로 쌓여 합주가 된다. 웹캠·노트북·스피커 두 대. 브라우저 대시보드로 값을 바꾼다 | Python |
+| [mediapipe-stepchorus](https://github.com/joonhyungbae/mediapipe-stepchorus) | 관객의 걸음이 긴 소리로 쌓여 합주가 된다. 웹캠·노트북·스피커 두 대. 브라우저 대시보드로 값을 바꾼다 | Python |
+
+저장소 이름은 **`대표기술-의도`** 로 짓습니다. 소문자와 하이픈 하나만 씁니다 — 앞은 그것을 돌리는 데
+반드시 필요한 소프트웨어 이름, 뒤는 작품이 하려는 일입니다. 폴더 이름도 저장소 이름 그대로입니다.
 
 받는 법은 각 저장소의 README 에 있습니다. 설치 스크립트는 이 저장소만 받습니다.
 
