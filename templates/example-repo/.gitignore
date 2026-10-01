@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+out.wav
+
+# 큰 자료는 커밋하지 않는다. 설치 스크립트가 받아 온다.
+engine/
+corpus/*/
+sample/*
+!sample/README.md
+*.task
