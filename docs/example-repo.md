@@ -5,7 +5,8 @@
 
 참고 구현: [dicy2-stepchorus](https://github.com/joonhyungbae/dicy2-stepchorus) (파이썬),
 [mediapipe-shadowpatch](https://github.com/joonhyungbae/mediapipe-shadowpatch) (브라우저),
-[webaudio-voiceface](https://github.com/joonhyungbae/webaudio-voiceface) (브라우저, 조작 화면과 전시 화면 둘)
+[webaudio-voiceface](https://github.com/joonhyungbae/webaudio-voiceface) (브라우저, 조작 화면과 전시 화면 둘),
+[servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) (브라우저에서 정한 값을 아두이노로 내보낸다)
 
 ## 시작하는 법
 
@@ -163,6 +164,11 @@ web/
 - 브라우저 예제에서 입력 분석을 화면 그리기(requestAnimationFrame)에 묶지 않는다. 조작 창이 다른 창에 가려지면
   그리기가 멈춰 그동안의 입력을 놓친다. 소리는 AudioWorklet 에서 받는다
 - 소리를 고정 문턱으로 가르지 않는다. 녹음과 방마다 바닥 소음이 다르다. 바닥 소음을 따라가는 문턱을 쓴다
+- 그 바닥은 천천히 올라가고 빨리 내려와야 한다. 빨리 올라가게 두면 큰 소리가 그대로 바닥이 되어 다음 타격을 놓친다
+- 타격의 세기는 소리가 커지는 순간이 아니라 봉우리에서, 배수가 아니라 dB 로 잰다. 올라가는 중에 재면 늘 약하게 나온다
+- 마이크를 열 때 echoCancellation·autoGainControl 을 끈다. 켜 두면 타악기의 봉우리가 깎여 세게 친 것과 살살 친 것이 같아진다
+- 모터가 붙는 작품은 화면과 모터가 같은 숫자를 쓰게 한다. 부품이 오기 전에 각도를 정해 둘 수 있다
+- gh 로 저장소를 만들면 기본 가지가 master 로 올라갈 수 있다. Pages 환경이 그 가지만 허락해 배포가 거절된다. 먼저 main 으로 바꾼다
 - 화면이 둘(조작·전시)이면 같은 브라우저의 BroadcastChannel 로 상태 숫자만 보낸다. 관객의 녹음·영상은 보내지 않는다
 - 시험용 영상은 온몸이 보이고 머리·팔이 잘리지 않은 것을 고른다. 위키미디어의
   「Jumping jacks and burpees」(CC BY-SA 4.0)가 팔 벌리기·웅크리기·돌아서기를 다 담고 있다
