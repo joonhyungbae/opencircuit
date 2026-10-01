@@ -6,7 +6,8 @@
 참고 구현: [dicy2-stepchorus](https://github.com/joonhyungbae/dicy2-stepchorus) (파이썬),
 [mediapipe-shadowpatch](https://github.com/joonhyungbae/mediapipe-shadowpatch) (브라우저),
 [webaudio-voiceface](https://github.com/joonhyungbae/webaudio-voiceface) (브라우저, 조작 화면과 전시 화면 둘),
-[servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) (브라우저에서 정한 값을 아두이노로 내보낸다)
+[servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) (브라우저에서 정한 값을 아두이노로 내보낸다),
+[webgl-liquidbody](https://github.com/joonhyungbae/webgl-liquidbody) (브라우저, WebGL 셰이더 한 장으로 그린다)
 
 ## 시작하는 법
 
@@ -169,6 +170,10 @@ web/
 - 마이크를 열 때 echoCancellation·autoGainControl 을 끈다. 켜 두면 타악기의 봉우리가 깎여 세게 친 것과 살살 친 것이 같아진다
 - 모터가 붙는 작품은 화면과 모터가 같은 숫자를 쓰게 한다. 부품이 오기 전에 각도를 정해 둘 수 있다
 - gh 로 저장소를 만들면 기본 가지가 master 로 올라갈 수 있다. Pages 환경이 그 가지만 허락해 배포가 거절된다. 먼저 main 으로 바꾼다
+- 다른 예제의 Pages 워크플로를 베껴 오면 그 저장소의 내려받기 스크립트 이름이 남는다. 배포가 그 줄에서 멈춘다
+- 사람의 모양만 쓰는 작품은 관절 모델이 아니라 분리(segmenter) 모델을 쓴다. 가볍고 마스크가 매끄럽다
+- 2D 그림판을 셰이더의 텍스처로 올리면 위아래가 뒤집힌다. 화면 좌표와 같은 방향으로 읽는다
+- 마스크를 한 번에 크게 흐리면 네모진 자국이 남는다. 둥글게 돌며 여러 번 읽어 흐린다
 - 화면이 둘(조작·전시)이면 같은 브라우저의 BroadcastChannel 로 상태 숫자만 보낸다. 관객의 녹음·영상은 보내지 않는다
 - 시험용 영상은 온몸이 보이고 머리·팔이 잘리지 않은 것을 고른다. 위키미디어의
   「Jumping jacks and burpees」(CC BY-SA 4.0)가 팔 벌리기·웅크리기·돌아서기를 다 담고 있다
