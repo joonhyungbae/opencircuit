@@ -289,6 +289,7 @@ Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/
 |---|---|---|
 | [dicy2-stepchorus](https://github.com/joonhyungbae/dicy2-stepchorus) | 관객의 걸음이 긴 소리로 쌓여 합주가 된다. Dicy2 생성 엔진이 다음 소리를 고르고, 웹캠이 걸음을 받는다. 브라우저 대시보드로 값을 바꾼다 | Python |
 | [mediapipe-shadowpatch](https://github.com/joonhyungbae/mediapipe-shadowpatch) | 카메라에 비친 실루엣이 검은 색면 하나가 된다. 브라우저만으로 돌고 폰·라즈베리파이로 옮겨 몸에 달 수 있다 | JavaScript |
+| [p5js-handsteer](https://github.com/joonhyungbae/p5js-handsteer) | 두 손을 들면 화면이 기울고 소리가 어긋난다. 웹캠으로 손을 읽어 조작값을 만들고 p5.js 가 그린다 | 브라우저 |
 
 저장소 이름은 **`대표기술-의도`** 로 짓습니다. 소문자와 하이픈 하나만 씁니다. 앞은 그것을 바꾸면
 작품이 달라지는 소프트웨어 이름이고, 뒤는 작품이 하려는 일입니다. 폴더 이름도 저장소 이름 그대로입니다.
