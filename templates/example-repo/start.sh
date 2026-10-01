@@ -6,24 +6,15 @@
 #   ./start.sh --sim      언제나 가짜 관객으로
 #   ./start.sh --offline 30   스피커 없이 30초를 out.wav 로 적는다
 #
-# 환경을 알아서 찾는다. conda 환경(<환경이름>)이 있으면 그것을, 없으면 .venv 를 쓴다.
+# conda 환경(<환경이름>)으로 켠다. conda 는 터미널 설정 없이도 찾는다(scripts/conda.sh).
 set -euo pipefail
 cd "$(dirname "$0")"
 
-ENV_NAME="<환경이름>"
-
-run() {
-  if command -v conda >/dev/null 2>&1 && conda env list | awk '{print $1}' | grep -qx "$ENV_NAME"; then
-    conda run --no-capture-output -n "$ENV_NAME" python "$@"
-  elif [ -d ".venv" ]; then
-    # shellcheck disable=SC1091
-    source .venv/bin/activate
-    python "$@"
-  else
-    echo "먼저 설치해 주세요:  bash install.sh" >&2
-    exit 1
-  fi
-}
+# shellcheck source=scripts/conda.sh
+source scripts/conda.sh   # ENV_NAME, find_conda, env_exists
+CONDA="$(find_conda)" || { echo "conda 가 없습니다. 먼저 설치해 주세요:  bash install.sh" >&2; exit 1; }
+env_exists "$CONDA" || { echo "conda 환경($ENV_NAME)이 없습니다. 먼저 설치해 주세요:  bash install.sh" >&2; exit 1; }
+run() { "$CONDA" run --no-capture-output -n "$ENV_NAME" python "$@"; }
 
 # Dicy2 엔진이 깔려 있으면 서버를 대신 띄워 준다. 사람이 창을 두 개 띄울 일이 없다.
 ENGINE="engine/<엔진>/dicy2_server.py"
@@ -41,13 +32,8 @@ if [ -f "$ENGINE" ]; then
       RECV_PORT=$((RECV_PORT + 1))
     done
     echo "▸ Dicy2 엔진을 켭니다 (받기 ${SEND_PORT}, 보내기 ${RECV_PORT})"
-    if command -v conda >/dev/null 2>&1 && conda env list | awk '{print $1}' | grep -qx "$ENV_NAME"; then
-      conda run --no-capture-output -n "$ENV_NAME" python "$ENGINE" \
-        --recvport "$SEND_PORT" --sendport "$RECV_PORT" > engine/dicy2.log 2>&1 &
-    else
-      ( [ -d .venv ] && source .venv/bin/activate
-        python "$ENGINE" --recvport "$SEND_PORT" --sendport "$RECV_PORT" > engine/dicy2.log 2>&1 ) &
-    fi
+    "$CONDA" run --no-capture-output -n "$ENV_NAME" python "$ENGINE" \
+      --recvport "$SEND_PORT" --sendport "$RECV_PORT" > engine/dicy2.log 2>&1 &
     ENGINE_PID=$!
     trap 'kill $ENGINE_PID 2>/dev/null || true' EXIT
     sleep 4

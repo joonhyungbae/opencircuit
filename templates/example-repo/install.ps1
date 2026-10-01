@@ -4,13 +4,13 @@
 #   irm https://raw.githubusercontent.com/<계정>/<저장소>/main/install.ps1 -OutFile "$env:TEMP\sc-install.ps1"
 #   & "$env:TEMP\sc-install.ps1"
 #
-# 하는 일: 저장소 받기 → conda 환경 만들기 → 필요한 것 설치 → 웹캠 모델 받기 → 켜는 법 알려 주기.
-# conda 가 없으면 파이썬 가상환경으로 대신 깐다.
+# 하는 일: 저장소 받기 → conda 확인(없으면 Miniforge 를 깐다) → conda 환경 만들기
+#          → 웹캠 모델 받기 → 켜는 법 알려 주기.
+# 언제나 conda 환경으로 돌린다. venv 나 시스템 파이썬으로 넘어가지 않는다.
 
 $ErrorActionPreference = "Stop"
 $Repo = "https://github.com/<계정>/<저장소>"
 $Name = "<저장소>"
-$EnvName = "<환경이름>"
 
 function Say($m)  { Write-Host "▸ $m" -ForegroundColor Cyan }
 function Oops($m) { Write-Host "✗ $m" -ForegroundColor Red; exit 1 }
@@ -34,31 +34,22 @@ if ((Test-Path "run.py") -and (Test-Path "<환경이름>")) {
 }
 Set-Location $Dir
 
-# ── 2. 환경 ──────────────────────────────────────────────────────────────
-$How = ""
-if (Get-Command conda -ErrorAction SilentlyContinue) {
-  Say "conda 로 환경을 만듭니다: $EnvName"
-  $exists = (conda env list) -match "^\s*$EnvName\s"
-  if ($exists) {
-    Say "이미 있는 환경을 최신으로 맞춥니다. 몇 분 걸립니다."
-    conda env update -n $EnvName -f environment.yml --prune
-  } else {
-    Say "처음 만드는 중입니다. 몇 분 걸립니다."
-    conda env create -f environment.yml
-  }
-  $How = "conda activate $EnvName"
+. .\scripts\conda.ps1   # $EnvName, Find-Conda, Install-Miniforge, Test-CondaEnv
+
+# ── 2. conda. 없으면 Miniforge 를 사용자 폴더에 깐다 ───────────────────────
+$Conda = Find-Conda
+if ($Conda) {
+  Say "conda 를 씁니다: $Conda"
 } else {
-  Say "conda 가 없어 파이썬 가상환경으로 깝니다."
-  Say "소리 장치가 말썽이면 Miniconda 를 깔고 다시 실행하세요: https://docs.conda.io/projects/miniconda/"
-  $py = Get-Command python -ErrorAction SilentlyContinue
-  if (-not $py) {
-    Oops "파이썬 3.10 이상이 필요합니다. https://www.python.org/downloads/ 에서 받아 깔 때 'Add Python to PATH' 를 체크하세요."
-  }
-  if (-not (Test-Path ".venv")) { python -m venv .venv }
-  & ".\.venv\Scripts\Activate.ps1"
-  python -m pip install -q --upgrade pip
-  python -m pip install -q -r requirements.txt
-  $How = ".\.venv\Scripts\activate"
+  Say "conda 가 없어 Miniforge 를 깝니다 (~\miniforge3, 몇 분 걸립니다)"
+  $Conda = Install-Miniforge
+}
+if (Test-CondaEnv $Conda) {
+  Say "이미 있는 환경을 최신으로 맞춥니다. 몇 분 걸립니다."
+  & $Conda env update -n $EnvName -f environment.yml --prune
+} else {
+  Say "conda 환경을 처음 만듭니다: $EnvName (몇 분 걸립니다)"
+  & $Conda env create -f environment.yml
 }
 
 # ── 3. 웹캠용 모델 ───────────────────────────────────────────────────────
@@ -86,11 +77,7 @@ if (-not (Test-Path "engine/<엔진>")) {
 }
 if (Test-Path "engine/<엔진>") {
   try {
-    if (Get-Command conda -ErrorAction SilentlyContinue) {
-      conda run -n $EnvName python -m pip install -q maxosc python-osc | Out-Null
-    } else {
-      python -m pip install -q maxosc python-osc | Out-Null
-    }
+    & $Conda run -n $EnvName python -m pip install -q maxosc python-osc | Out-Null
   } catch { }
 }
 
@@ -98,11 +85,7 @@ if (Test-Path "engine/<엔진>") {
 if (-not (Test-Path "corpus/<자료이름>")) {
   Say "소리 묶음(<자료이름>, 퍼블릭 도메인)을 받습니다"
   try {
-    if (Get-Command conda -ErrorAction SilentlyContinue) {
-      conda run --no-capture-output -n $EnvName python fetch_corpus.py <자료이름> | Out-Null
-    } else {
-      python fetch_corpus.py <자료이름> | Out-Null
-    }
+    & $Conda run --no-capture-output -n $EnvName python fetch_corpus.py <자료이름> | Out-Null
   } catch {
     Say "소리 묶음을 받지 못했습니다. 나중에 'python fetch_corpus.py <자료이름>' 로 받으면 됩니다."
   }
@@ -115,4 +98,4 @@ Write-Host "    cd $Dir"
 Write-Host "    .\start.ps1 --corpus corpus/<자료이름>"
 Write-Host ""
 Write-Host "  켜지면 브라우저에서  127.0.0.1:7000  을 엽니다. 끌 때는 Ctrl+C 입니다."
-Write-Host "  직접 켜고 싶으면:  $How  그다음  python run.py --sim"
+Write-Host "  직접 켜고 싶으면:  & `"$Conda`" run -n $EnvName python run.py --sim"

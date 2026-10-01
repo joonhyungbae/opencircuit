@@ -38,8 +38,8 @@ cd <대표기술>-<의도> && git init
 | `CLAUDE.md`, `.cursor/rules/*.mdc` | AGENTS.md 를 가리키는 두세 줄 |
 | `install.sh`, `install.ps1` | 한 줄 설치. 받기·환경·의존성·필요한 자료까지 |
 | `start.sh`, `start.ps1` | 한 줄 실행. 환경을 알아서 찾고, 없는 것은 대신 챙긴다 |
-| `environment.yml` | conda 환경. 소리·영상 라이브러리는 conda 쪽이 덜 깨진다. 설치할 패키지가 없으면 두지 않는다 |
-| `requirements.txt` | conda 가 없는 사람을 위한 목록. 설치할 패키지가 없으면 두지 않는다 |
+| `environment.yml` | conda 환경. 모든 예제는 conda 로 돈다. 파이썬 패키지가 없어도 파이썬만 적어 둔다. pip 로만 받는 것은 `pip:` 아래에 |
+| `scripts/conda.sh`, `scripts/conda.ps1` | conda 찾기와, 없을 때 Miniforge 깔기. install·start 가 불러 쓴다 |
 | `LICENSE` | OpenCircuit License v1.0 (소스 공개) |
 | `NOTICE.md` | 제3자 구성요소와 라이선스. 받아 쓰는 자료의 출처도 |
 | `docs/notes.md` | 왜 이렇게 만들었는지. README 에서 뺀 긴 설명 |
@@ -84,7 +84,7 @@ web/
 └── vendor/            라이브러리. CDN 대신 저장소에 넣는다
 ```
 
-- `environment.yml`·`requirements.txt` 를 두지 않고, `start.sh` 는 파이썬 3 만 찾는다.
+- `environment.yml` 에는 파이썬만 둔다. 그래도 conda 환경으로 켠다.
 - 정적 서버는 `Cache-Control: no-store` 를 보낸다. 그러지 않으면 작가가 고친 파일 대신 옛 모듈이 돈다.
 - 조절판 값을 브라우저에 남긴다면 `settings.js` 의 처음 값이 바뀌었을 때 남은 값을 버린다.
 - `--offline N` 은 가짜 입력으로 N초를 녹화해 서버로 보내 `out.mp4` 로 적는다.
@@ -124,6 +124,9 @@ web/
 
 ## 지킬 것
 
+- **언제나 conda 로 돕니다.** 설치는 conda 환경을 만들고, 켜기는 `conda run --no-capture-output -n <환경>` 으로
+  그 환경 안에서 합니다. conda 가 없으면 venv 나 시스템 파이썬으로 넘어가지 않고 Miniforge 를
+  `~/miniforge3` 에 깝니다(관리자 권한·셸 설정 없이). `requirements.txt` 와 venv 길은 두지 않습니다.
 - **인터넷 없이 떠야 합니다.** 전시장에서 네트워크가 끊깁니다. CDN, 외부 폰트, 외부 스크립트를
   쓰지 않고 필요한 파일은 저장소에 넣습니다.
 - **없어도 돌아가야 합니다.** 카메라가 없으면 시뮬레이션, 스피커가 없으면 파일로 녹음,
@@ -145,6 +148,9 @@ web/
 - 매 바퀴 `sleep(한 블록)` 으로는 실시간을 못 맞춘다. 다음에 깨어날 시각을 정해 두고 맞춘다
 - 리눅스의 `open` 은 맥의 그것과 다른 명령이다
 - 같은 프로그램을 여러 번 켜면 포트가 겹친다. 비어 있는 포트를 찾아 쓴다
+- conda 는 터미널 설정을 읽지 않는 자리(curl | bash, 더블클릭, 자동 시작)에서도 찾아야 한다.
+  `type -P conda` 다음에 흔한 설치 위치(`~/miniforge3`, `~/miniconda3`, `~/anaconda3` 등)를 차례로 본다
+- Miniforge 설치 파일은 이름이 `.sh` 로 끝나지 않으면 「bash 로 실행하라」며 멈춘다
 - 맥에 git 이 없으면 `git` 을 치는 순간 개발 도구 설치 창이 뜬다. 설치 스크립트는 git 이 없으면 압축 파일로 받는다
 - 맥의 python.org 파이썬은 인증서가 없어 https 를 못 여는 일이 있다. 내려받기는 실패하면 curl 로 다시 받는다
 - `python3 -m http.server` 는 브라우저 캐시를 막지 않는다. 고친 JS 가 안 보이면 이것부터 의심한다
