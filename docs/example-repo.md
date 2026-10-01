@@ -3,7 +3,8 @@
 작가가 받아서 고쳐 쓰는 예제는 저장소 하나에 하나씩 만듭니다. 이 문서는 그 저장소들이
 공통으로 갖출 것을 정합니다. 틀은 [`templates/example-repo/`](../templates/example-repo/) 에 있습니다.
 
-첫 번째 예: [dicy2-stepchorus](https://github.com/joonhyungbae/dicy2-stepchorus)
+참고 구현: [dicy2-stepchorus](https://github.com/joonhyungbae/dicy2-stepchorus) (파이썬),
+[mediapipe-shadowpatch](https://github.com/joonhyungbae/mediapipe-shadowpatch) (브라우저)
 
 ## 시작하는 법
 
@@ -37,8 +38,8 @@ cd <대표기술>-<의도> && git init
 | `CLAUDE.md`, `.cursor/rules/*.mdc` | AGENTS.md 를 가리키는 두세 줄 |
 | `install.sh`, `install.ps1` | 한 줄 설치. 받기·환경·의존성·필요한 자료까지 |
 | `start.sh`, `start.ps1` | 한 줄 실행. 환경을 알아서 찾고, 없는 것은 대신 챙긴다 |
-| `environment.yml` | conda 환경. 소리·영상 라이브러리는 conda 쪽이 덜 깨진다 |
-| `requirements.txt` | conda 가 없는 사람을 위한 목록 |
+| `environment.yml` | conda 환경. 소리·영상 라이브러리는 conda 쪽이 덜 깨진다. 설치할 패키지가 없으면 두지 않는다 |
+| `requirements.txt` | conda 가 없는 사람을 위한 목록. 설치할 패키지가 없으면 두지 않는다 |
 | `LICENSE` | OpenCircuit License v1.0 (소스 공개) |
 | `NOTICE.md` | 제3자 구성요소와 라이선스. 받아 쓰는 자료의 출처도 |
 | `docs/notes.md` | 왜 이렇게 만들었는지. README 에서 뺀 긴 설명 |
@@ -67,6 +68,27 @@ run.py                 시작하는 자리. 인자를 읽고 조각들을 이어
 - **대시보드는 상태를 보여 주고 값을 바꾸는 곳**입니다. 작가가 코드를 고치지 않고 만질 수
   있는 값은 전부 여기로 올립니다.
 - 큰 자료(소리·영상·모델·엔진)는 받아 쓰고 커밋하지 않습니다.
+
+### 브라우저에서 도는 예제
+
+계산이 브라우저 안에서 끝나는 예제(MediaPipe 웹판 등)는 파이썬 패키지가 필요 없습니다.
+그때는 이 꼴입니다. 참고 구현은 mediapipe-shadowpatch 입니다.
+
+```text
+serve.py               시작하는 자리. 표준 라이브러리 서버로 web/ 를 띄우고 공통 명령을 처리한다
+fetch_<자료>.py        모델·영상을 받는다. 표준 라이브러리만, 안 되면 curl
+web/
+├── settings.js        만지는 숫자가 전부 여기. 조절판 항목도 여기서 만든다
+├── <입력>.js · <결정>.js · <출력>.js
+├── app.js             한 프레임에 벌어지는 일과 조절판
+└── vendor/            라이브러리. CDN 대신 저장소에 넣는다
+```
+
+- `environment.yml`·`requirements.txt` 를 두지 않고, `start.sh` 는 파이썬 3 만 찾는다.
+- 정적 서버는 `Cache-Control: no-store` 를 보낸다. 그러지 않으면 작가가 고친 파일 대신 옛 모듈이 돈다.
+- 조절판 값을 브라우저에 남긴다면 `settings.js` 의 처음 값이 바뀌었을 때 남은 값을 버린다.
+- `--offline N` 은 가짜 입력으로 N초를 녹화해 서버로 보내 `out.mp4` 로 적는다.
+- 설치 없이 보는 주소(GitHub Pages)를 둘 수 있다. 커밋하지 않는 모델은 Actions 가 올리기 직전에 받는다.
 
 ## 공통 명령
 
@@ -123,6 +145,13 @@ run.py                 시작하는 자리. 인자를 읽고 조각들을 이어
 - 매 바퀴 `sleep(한 블록)` 으로는 실시간을 못 맞춘다. 다음에 깨어날 시각을 정해 두고 맞춘다
 - 리눅스의 `open` 은 맥의 그것과 다른 명령이다
 - 같은 프로그램을 여러 번 켜면 포트가 겹친다. 비어 있는 포트를 찾아 쓴다
+- 맥에 git 이 없으면 `git` 을 치는 순간 개발 도구 설치 창이 뜬다. 설치 스크립트는 git 이 없으면 압축 파일로 받는다
+- 맥의 python.org 파이썬은 인증서가 없어 https 를 못 여는 일이 있다. 내려받기는 실패하면 curl 로 다시 받는다
+- `python3 -m http.server` 는 브라우저 캐시를 막지 않는다. 고친 JS 가 안 보이면 이것부터 의심한다
+- 브라우저 모듈 안의 상대 경로는 그 모듈 기준으로 풀린다. `vendor/` 처럼 페이지 기준 자리는 `document.baseURI` 로 부른다
+- MediaPipe 웹판을 GPU 로 돌리면 관절은 잡히는데 분리 마스크가 전부 0 인 환경이 있다. 기본은 CPU
+- 시험용 영상은 온몸이 보이고 머리·팔이 잘리지 않은 것을 고른다. 위키미디어의
+  「Jumping jacks and burpees」(CC BY-SA 4.0)가 팔 벌리기·웅크리기·돌아서기를 다 담고 있다
 
 ## 내보내기 전 확인
 

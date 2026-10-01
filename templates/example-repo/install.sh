@@ -20,15 +20,20 @@ if [ -f "run.py" ] && [ -d "<환경이름>" ]; then
   DIR="$(pwd)"
   say "이미 받아 둔 폴더에서 실행합니다: $DIR"
 else
-  command -v git >/dev/null 2>&1 \
-    || oops "git 이 필요합니다. 맥은 'xcode-select --install', 리눅스는 'sudo apt install git' 으로 깝니다."
   DIR="$(pwd)/$NAME"
-  if [ -d "$DIR" ]; then
+  if [ -d "$DIR/.git" ] && command -v git >/dev/null 2>&1; then
     say "폴더가 이미 있어 최신으로 받습니다: $DIR"
     git -C "$DIR" pull --ff-only >/dev/null 2>&1 || say "최신으로 받지 못했습니다. 있는 그대로 씁니다."
-  else
+  elif [ -d "$DIR" ]; then
+    say "폴더가 이미 있어 그대로 씁니다: $DIR"
+  elif command -v git >/dev/null 2>&1 && git --version >/dev/null 2>&1; then
     say "받는 중: $DIR"
     git clone -q "$REPO" "$DIR"
+  else
+    # git 이 없으면 압축 파일로 받는다. 맥에서 개발 도구 설치 창이 뜨는 것을 피한다.
+    say "받는 중 (압축 파일): $DIR"
+    mkdir -p "$DIR"
+    curl -fsSL "$REPO/archive/refs/heads/main.tar.gz" | tar xz -C "$DIR" --strip-components 1
   fi
 fi
 cd "$DIR"
