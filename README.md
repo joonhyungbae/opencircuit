@@ -294,8 +294,8 @@ Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/
 작품이 달라지는 소프트웨어 이름이고, 뒤는 작품이 하려는 일입니다. 폴더 이름도 저장소 이름 그대로입니다.
 
 받는 법은 각 저장소의 README 에 있습니다. 설치 스크립트는 이 저장소만 받습니다.
-새 예제 저장소를 만들 때의 규칙과 틀은 [docs/example-repo.md](docs/example-repo.md) 와
-[templates/example-repo/](templates/example-repo/) 에 있습니다.
+새 예제 저장소는 [`templates/example-repo/`](templates/example-repo/) 를 복사해서 시작하고,
+규칙은 [docs/example-repo.md](docs/example-repo.md) 를 따릅니다.
 
 ---
 
