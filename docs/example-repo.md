@@ -7,7 +7,8 @@
 [mediapipe-shadowpatch](https://github.com/joonhyungbae/mediapipe-shadowpatch) (브라우저),
 [webaudio-voiceface](https://github.com/joonhyungbae/webaudio-voiceface) (브라우저, 조작 화면과 전시 화면 둘),
 [servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) (브라우저에서 정한 값을 아두이노로 내보낸다),
-[webgl-liquidbody](https://github.com/joonhyungbae/webgl-liquidbody) (브라우저, WebGL 셰이더 한 장으로 그린다)
+[webgl-liquidbody](https://github.com/joonhyungbae/webgl-liquidbody) (브라우저, WebGL 셰이더 한 장으로 그린다),
+[mediapipe-dancereply](https://github.com/joonhyungbae/mediapipe-dancereply) (브라우저, 작가가 만든 그림·소리를 폴더에서 읽어 쓴다)
 
 ## 시작하는 법
 
@@ -181,6 +182,11 @@ web/
 - 사람의 모양만 쓰는 작품은 관절 모델이 아니라 분리(segmenter) 모델을 쓴다. 가볍고 마스크가 매끄럽다
 - 2D 그림판을 셰이더의 텍스처로 올리면 위아래가 뒤집힌다. 화면 좌표와 같은 방향으로 읽는다
 - 마스크를 한 번에 크게 흐리면 네모진 자국이 남는다. 둥글게 돌며 여러 번 읽어 흐린다
+- 브라우저는 폴더 안을 들여다볼 수 없다. 작가가 넣은 자료는 작은 파이썬 스크립트가 목록으로 만들고,
+  start 가 켤 때마다 그것을 돌린다. 작가는 파일만 넣으면 되게 한다
+- 작가가 만든 그림·소리가 들어갈 자리는 비워 두고 자리표시자로 돌린다. 그림이 없다고 멈추면
+  작가는 그림을 다 그린 뒤에야 흐름을 볼 수 있다
+- 움직임을 한 프레임의 차이로만 재면 프레임이 느린 기계에서 작게 나온다. 1초치로 환산한다
 - 화면이 둘(조작·전시)이면 같은 브라우저의 BroadcastChannel 로 상태 숫자만 보낸다. 관객의 녹음·영상은 보내지 않는다
 - 시험용 영상은 온몸이 보이고 머리·팔이 잘리지 않은 것을 고른다. 위키미디어의
   「Jumping jacks and burpees」(CC BY-SA 4.0)가 팔 벌리기·웅크리기·돌아서기를 다 담고 있다
