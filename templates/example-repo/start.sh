@@ -47,12 +47,12 @@ if [ ${#ARGS[@]} -eq 0 ] && [ ! -f "<모델파일>" ]; then
   ARGS=(--sim)
 fi
 # --engine 을 따로 적지 않았고 엔진이 깔려 있으면 Dicy2 로 켠다.
-case " ${ARGS[*]} " in
+case " ${ARGS[*]:-} " in
   *" --engine "*) ;;
   *) [ "$USE_DICY2" = "1" ] && ARGS+=(--engine dicy2 --dicy2-recv "$RECV_PORT") ;;
 esac
 # <자료이름> 묶음이 있는데 --corpus 를 안 적었으면 그것으로 켠다. 기본 사인파보다 들을 만하다.
-case " ${ARGS[*]} " in
+case " ${ARGS[*]:-} " in
   *" --corpus "*) ;;
   *) [ -d "corpus/<자료이름>" ] && ARGS+=(--corpus corpus/<자료이름>) ;;
 esac
@@ -65,4 +65,6 @@ URL="http://127.0.0.1:7000"
   elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1
   fi ) &
 
-run run.py "${ARGS[@]}"
+# 빈 배열을 그냥 펼치면 맥 기본 bash(3.2)가 set -u 에서 unbound variable 로 멈춘다.
+# 그래서 ${ARGS[@]+"${ARGS[@]}"}, ${ARGS[*]:-} 꼴로 쓴다
+run run.py ${ARGS[@]+"${ARGS[@]}"}
