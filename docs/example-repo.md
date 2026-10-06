@@ -8,7 +8,8 @@
 [webaudio-voiceface](https://github.com/joonhyungbae/webaudio-voiceface) (브라우저, 조작 화면과 전시 화면 둘),
 [servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) (브라우저에서 정한 값을 아두이노로 내보낸다),
 [webgl-liquidbody](https://github.com/joonhyungbae/webgl-liquidbody) (브라우저, WebGL 셰이더 한 장으로 그린다),
-[mediapipe-dancereply](https://github.com/joonhyungbae/mediapipe-dancereply) (브라우저, 작가가 만든 그림·소리를 폴더에서 읽어 쓴다)
+[mediapipe-dancereply](https://github.com/joonhyungbae/mediapipe-dancereply) (브라우저, 작가가 만든 그림·소리를 폴더에서 읽어 쓴다),
+[arduino-dockplay](https://github.com/joonhyungbae/arduino-dockplay) (아두이노 센서 값을 받아 브라우저가 판단하고 영상을 튼다)
 
 ## 시작하는 법
 
@@ -188,6 +189,14 @@ web/
   작가는 그림을 다 그린 뒤에야 흐름을 볼 수 있다
 - 움직임을 한 프레임의 차이로만 재면 프레임이 느린 기계에서 작게 나온다. 1초치로 환산한다
 - 화면이 둘(조작·전시)이면 같은 브라우저의 BroadcastChannel 로 상태 숫자만 보낸다. 관객의 녹음·영상은 보내지 않는다
+- 아두이노를 찾을 때 아무 시리얼 자리나 고르지 않는다. 리눅스의 `ttyS*` 나 맥의 블루투스 자리를 열려다
+  권한 오류로 멈춘다. USB 로 꽂힌 것(pyserial 의 `vid` 가 있는 것)만 본다
+- 시리얼 `readline()` 은 기다리는 시간이 다 되면 줄의 앞부분만 돌려준다. 줄바꿈이 올 때까지 모아서 쓴다
+- 센서 판단(문턱)은 보드가 아니라 브라우저에 둔다. 보드는 숫자만 올려 보낸다. 문턱을 바꿀 때마다 스케치를 다시 올리지 않게
+- 모터를 돌리는 보드는 노트북이 몇 초 조용하면 스스로 멈춘다. 프로그램이 죽거나 선이 빠져도 모터가 돈 채로 남지 않게
+- 브라우저는 사람이 누르기 전에는 소리 있는 영상 재생을 막는다. 막히면 소리 없이 틀고 화면을 누르면 소리를 연다.
+  전시에서는 크롬을 `--autoplay-policy=no-user-gesture-required` 로 켠다
+- `conda run` 으로 띄운 서버는 conda 만 죽이면 파이썬이 남는다. 남은 것이 같은 시리얼을 읽으면 두 프로그램이 줄을 나눠 가져 깨져 보인다
 - 시험용 영상은 온몸이 보이고 머리·팔이 잘리지 않은 것을 고른다. 위키미디어의
   「Jumping jacks and burpees」(CC BY-SA 4.0)가 팔 벌리기·웅크리기·돌아서기를 다 담고 있다
 

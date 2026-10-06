@@ -294,6 +294,7 @@ Windows 는 `%USERPROFILE%\.opencircuit\repo`, macOS·Linux 는 `~/.opencircuit/
 | [servo-clothdance](https://github.com/joonhyungbae/servo-clothdance) | 타악기를 두드리면 흰 도포를 입은 꼭두가 팔을 펼쳤다 내려놓는다. 마이크로 타격을 읽어 서보 각도를 만들고, 소매와 아랫단은 천으로 흔든다 | 브라우저 · 아두이노 |
 | [webgl-liquidbody](https://github.com/joonhyungbae/webgl-liquidbody) | 앉은 사람의 몸이 경계가 번진 수채화 덩어리가 되고, 맑은 액체가 머리에서 들어와 몸을 채웠다가 발밑으로 빠진다. 액체가 지나간 자리의 글은 씻기듯 지워진다 | 브라우저 |
 | [mediapipe-dancereply](https://github.com/joonhyungbae/mediapipe-dancereply) | 낯선 존재가 춤으로 말을 걸고 관객이 움직임으로 답하면 그림과 소리가 한 겹씩 쌓여 하나의 세계가 된다. 작가가 그린 그림과 만든 소리를 폴더에 넣어 쓴다 | 브라우저 |
+| [arduino-dockplay](https://github.com/joonhyungbae/arduino-dockplay) | 사람이 다가오면 모터가 돌고, 거치대의 헤드셋을 들었다 내려놓으면 영상이 처음부터 재생된다. 아두이노가 센서를 읽고 브라우저가 순서를 정한다. 거치대 센서 셋(리드 스위치·무게·적외선)을 나란히 견준다 | 브라우저 · 아두이노 |
 
 저장소 이름은 **`대표기술-의도`** 로 짓습니다. 소문자와 하이픈 하나만 씁니다. 앞은 그것을 바꾸면
 작품이 달라지는 소프트웨어 이름이고, 뒤는 작품이 하려는 일입니다. 폴더 이름도 저장소 이름 그대로입니다.
